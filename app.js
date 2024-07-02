@@ -2,26 +2,37 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const config = require("./utils/config");
+const logger = require("./utils/logger");
+const userRoutes = require("./controllers/user");
+const diaryRoutes = require("./controllers/diary");
+const cors = require("cors");
+const middleware = require("./utils/middleware");
 
 const app = express();
-const port = process.env.PORT || 3000;
 
-app.use(bodyParser.json());
-
+mongoose.set("strictQuery", false);
+logger.info("connecting to", config.MONGODB_URI);
 mongoose
   .connect(config.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
-  .then(() => console.log("MongoDB connected"))
-  .catch((err) => console.error("MongoDB connection error:", err));
+  .then(() => logger.info("MongoDB connected"))
+  .catch((err) => logger.error("MongoDB connection error:", err));
 
-// Import routes
-const userRoutes = require("./routes/users");
-const diaryRoutes = require("./routes/diaries");
+//middleware for requests before routes access
+app.use(cors());
+app.use(express.static("dist"));
+app.use(express.json());
+app.use(middleware.requestLogger);
+app.use(bodyParser.json());
 
 // Use routes
 app.use("/api/users", userRoutes);
 app.use("/api/diaries", diaryRoutes);
+
+//middleware to handle errors in utils module
+app.use(middleware.unknownEndpoint);
+app.use(middleware.errorHandler);
 
 module.exports = app;
