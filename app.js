@@ -11,12 +11,8 @@ const middleware = require("./utils/middleware");
 const app = express();
 
 mongoose.set("strictQuery", false);
-logger.info("connecting to", config.MONGODB_URI);
 mongoose
-  .connect(config.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(config.MONGODB_URI, {})
   .then(() => logger.info("MongoDB connected"))
   .catch((err) => logger.error("MongoDB connection error:", err));
 
