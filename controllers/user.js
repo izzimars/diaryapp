@@ -4,10 +4,13 @@ const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const User = require("../models/user");
 const userrouter = express.Router();
-const secret = process.env.SECRET;
+const config = require("../utils/config");
+const secret = config.SECRET;
+const {signupSchema,loginSchema,forgotPasswordSchema,dateSchema} = require('../models/validationschema');
+const validate = require('../utils/validate');
 
 // Register User
-userrouter.post("/register", async (req, res) => {
+userrouter.post("/register",validate(signupSchema), async (req, res) => {
   //more input to be added
   const { email, password } = req.body;
   try {
@@ -67,7 +70,7 @@ userrouter.get("/verify/:token", async (req, res) => {
 });
 
 // Login User
-userrouter.post("/login", async (req, res) => {
+userrouter.post("/login",validate(loginSchema), async (req, res) => {
   const { email, password } = req.body;
   try {
     const user = await User.findOne({ email });

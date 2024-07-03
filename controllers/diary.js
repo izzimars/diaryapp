@@ -1,9 +1,12 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
 const Diary = require("../models/diary");
-const User = require("../models/user");
+const { dateSchema } = require("../models/validationschema");
+//const User = require("../models/user");
 const diaryrouter = express.Router();
-const secret = process.env.SECRET;
+const config = require("../utils/config");
+const secret = config.SECRET;
+const validate = require('../utils/validate');
 
 // Middleware to check JWT
 const authenticate = (req, res, next) => {
@@ -66,7 +69,7 @@ diaryrouter.get("/", authenticate, async (req, res) => {
 });
 
 // Filter Diary Entries by Date Range
-diaryrouter.get("/filter", authenticate, async (req, res) => {
+diaryrouter.get("/filter",validate(dateSchema), authenticate, async (req, res) => {
   const { startDate, endDate } = req.query;
   try {
     const diaries = await Diary.find({

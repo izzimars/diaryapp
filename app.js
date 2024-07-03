@@ -7,6 +7,7 @@ const userRoutes = require("./controllers/user");
 const diaryRoutes = require("./controllers/diary");
 const cors = require("cors");
 const middleware = require("./utils/middleware");
+const errorHandler = require("./utils/errorHandler")
 
 const app = express();
 
@@ -29,6 +30,6 @@ app.use("/api/diaries", diaryRoutes);
 
 //middleware to handle errors in utils module
 app.use(middleware.unknownEndpoint);
-app.use(middleware.errorHandler);
+app.use(errorHandler);
 
 module.exports = app;
