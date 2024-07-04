@@ -8,6 +8,7 @@ const config = require("../utils/config");
 const secret = config.SECRET;
 const {signupSchema,loginSchema,forgotPasswordSchema,dateSchema} = require('../models/validationschema');
 const validate = require('../utils/validate');
+const makeReminder = require('../models/reminderbot')
 
 // Register User
 userrouter.post("/register",validate(signupSchema), async (req, res) => {
@@ -80,10 +81,10 @@ userrouter.post("/login",validate(loginSchema), async (req, res) => {
         message: "Invalid credentials",
       });
     }
-    if (!user.verified) {
+    if (!user.emailverified || !user.numberverified) {
       return res.status(400).json({
         status: "error",
-        message: "Email not verified",
+        message: "User not verified",
       });
     }
     const token = jwt.sign({ userId: user._id }, secret, { expiresIn: "1h" });
@@ -99,5 +100,46 @@ userrouter.post("/login",validate(loginSchema), async (req, res) => {
     });
   }
 });
+
+
+// setting up user
+userrouter.post("/setup", async (req, res) => {
+  const { reminder, morning, afternoon,evening } = req.body;
+  try {
+    const user = await User.findOne({ email });
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.status(400).json({
+        status: "error",
+        message: "Invalid credentials",
+      });
+    }
+    if (!user.emailverified || !user.numberverified) {
+      return res.status(400).json({
+        status: "error",
+        message: "User not verified",
+      });
+    }
+    user.morning = morning;
+    makeReminder(morning, user);
+    user.afternoon = afternoon;
+    makeReminder(afternoon, user);
+    user.evening = evening;
+    makeReminder(evening, user);
+    await user.save();
+    // need to verify token or user or get user credentials
+    // const token = jwt.sign({ userId: user._id }, secret, { expiresIn: "1h" });
+    // return res.status(200).json({
+    //   status: "success",
+    //   token: token,
+    // });
+  } catch (err) {
+    return res.status(500).json({
+      status: "error",
+      message: err.message,
+      error: "Internal Server Error",
+    });
+  }
+});
+
 
 module.exports = userrouter;

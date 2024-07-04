@@ -8,8 +8,11 @@ const UserSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   phonenumber: { type: INT, required: true, unique: true },
   password: { type: String, required: true },
-  schedule: { type: INT, required: true },
-  verified: { type: Boolean, default: false },
+  morning: { type: INT, required: true },
+  afternoon: { type: INT, required: true },
+  evening: { type: INT, required: true },
+  emailverified: { type: Boolean, default: false },
+  numberverified: { type: Boolean, default: false },
 });
 
 UserSchema.pre("save", async function (next) {
