@@ -14,14 +14,14 @@ const {
 } = require("../models/validationschema");
 const validate = require("../utils/validate");
 const makeReminder = require("../models/reminderbot");
-const findUserByEmail = require("./findfunctions");
+const {findUserByEmail, updateUser} = require("./findfunctions");
 
 // Register User
 userrouter.post("/register", validate(signupSchema), async (req, res) => {
   //more input to be added
-  const { email, password } = req.body;
+  const { fullname, username, email, phonenumber, password } = req.body;
   try {
-    const user = new User({ email, password });
+    const user = new User({ fullname, username, email, phonenumber, password  });
     const flag = await user.save();
 
     // Send verification email
@@ -208,12 +208,16 @@ userrouter.post("/setup", async (req, res) => {
 });
 
 //change personal settings
-userrouter.post("/register", validate(signupSchema), async (req, res) => {
+userrouter.post("/personalinfo", async (req, res) => {
   //more input to be added
   const { fullname, username } = req.body;
   try {
-    const user = new User({ email, password });
-    const flag = await user.save();
+    //I DON'T YET KNOW HOW TO GET THE USER id
+    //const userId = userId
+    const newValues = {
+      fullname : fullname, username: username
+    }
+    updateUser(userId, newValues).catch(logger.error);
 
     return res.status(200).json({
       status: "success",
