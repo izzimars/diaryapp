@@ -119,12 +119,12 @@ userrouter.post("/setup", async (req, res) => {
         message: "User not verified",
       });
     }
-    user.morning = morning;
-    makeReminder(morning, user);
-    user.afternoon = afternoon;
-    makeReminder(afternoon, user);
-    user.evening = evening;
-    makeReminder(evening, user);
+    const morningtime = makeReminder(morning, user);
+    user.morning = morningtime;
+    const afternoontime = makeReminder(afternoon, user);
+    user.afternoon = afternoontime;
+    const eveningtime = makeReminder(evening, user);
+    user.evening = eveningtime;
     await user.save();
     // need to verify token or user or get user credentials
     // const token = jwt.sign({ userId: user._id }, secret, { expiresIn: "1h" });
