@@ -50,8 +50,16 @@ const scheduleAllReminders = () => {
 };
 
 // Example of adding a new reminder to the database
-const addReminder = (user, hour, time) => {
-  const newReminder = new Reminder({ user, hour, time });
+const addReminder = (user, time) => {
+  let hour;
+  const divTime = time.split(/[: ]/);
+  if (divTime[2] == "am") {
+    hour = divTime[0];
+  } else {
+    hour = Number(divTime[0]) + 12 < 24 ? divTime[0] * 2 : 0;
+  }
+  const mins = Number(divTime[1]);
+  const newReminder = new Reminder({ user, hour, mins });
   newReminder.save((err) => {
     if (err) {
       console.error("Error saving reminder:", err);
