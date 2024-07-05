@@ -6,12 +6,17 @@ const User = require("../models/user");
 const userrouter = express.Router();
 const config = require("../utils/config");
 const secret = config.SECRET;
-const {signupSchema,loginSchema,forgotPasswordSchema,dateSchema} = require('../models/validationschema');
-const validate = require('../utils/validate');
-const makeReminder = require('../models/reminderbot')
+const {
+  signupSchema,
+  loginSchema,
+  forgotPasswordSchema,
+  dateSchema,
+} = require("../models/validationschema");
+const validate = require("../utils/validate");
+const makeReminder = require("../models/reminderbot");
 
 // Register User
-userrouter.post("/register",validate(signupSchema), async (req, res) => {
+userrouter.post("/register", validate(signupSchema), async (req, res) => {
   //more input to be added
   const { email, password } = req.body;
   try {
@@ -71,7 +76,7 @@ userrouter.get("/verify/:token", async (req, res) => {
 });
 
 // Login User
-userrouter.post("/login",validate(loginSchema), async (req, res) => {
+userrouter.post("/login", validate(loginSchema), async (req, res) => {
   const { email, password } = req.body;
   try {
     const user = await User.findOne({ email });
@@ -101,10 +106,9 @@ userrouter.post("/login",validate(loginSchema), async (req, res) => {
   }
 });
 
-
 // setting up user
 userrouter.post("/setup", async (req, res) => {
-  const { reminder, morning, afternoon,evening } = req.body;
+  const { reminder, morning, afternoon, evening } = req.body;
   try {
     const user = await User.findOne({ email });
     if (!user || !(await bcrypt.compare(password, user.password))) {
@@ -140,6 +144,5 @@ userrouter.post("/setup", async (req, res) => {
     });
   }
 });
-
 
 module.exports = userrouter;

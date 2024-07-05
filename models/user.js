@@ -3,14 +3,11 @@ const bcrypt = require("bcryptjs");
 
 const UserSchema = new mongoose.Schema({
   //More input needed like name and all
-  fullname: { type: String, required: true, },
+  fullname: { type: String, required: true },
   username: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
   phonenumber: { type: INT, required: true, unique: true },
   password: { type: String, required: true },
-  morning: { type: INT, required: true },
-  afternoon: { type: INT, required: true },
-  evening: { type: INT, required: true },
   emailverified: { type: Boolean, default: false },
   numberverified: { type: Boolean, default: false },
 });
