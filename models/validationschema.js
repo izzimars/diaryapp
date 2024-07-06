@@ -17,7 +17,7 @@ const signupSchema = Joi.object({
   .with("bookname", ["genre", "date", "id"]);
 
 const verifyOTPSchema = Joi.object({
-  user_id: Joi.string().min(3).max(50).required(),
+  email: Joi.string().email().required(),
   otp: Joi.string().max(4).required().messages({
     "any.only": "Invalid OTP",
   }),
@@ -49,7 +49,7 @@ const forgotPasswordSchema = Joi.object({
   confirmPassword: Joi.any().valid(Joi.ref("password")).required().messages({
     "any.only": "Passwords do not match",
   }),
-}).with("password", ["username", "email"]);
+}).with("password", ["email"]);
 
 const dateSchema = Joi.object({
   startDate: Joi.date().required(),

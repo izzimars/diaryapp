@@ -30,7 +30,7 @@ userrouter.post("/signup", validate(signupSchema), async (req, res) => {
     const result = await user.save();
     logger.info("User saved:", result);
     logger.info("Sending OTP to:", result._id, result.email);
-    sendOTPVerificationEmail(result._id, result.email, res);
+    sendOTPVerificationEmail(result.email, res);
   } catch (err) {
     console.error("Error during signup:", err);
     res.status(500).json({
@@ -41,9 +41,10 @@ userrouter.post("/signup", validate(signupSchema), async (req, res) => {
   }
 });
 
-const sendOTPVerificationEmail = async (_id, email, res) => {
+const sendOTPVerificationEmail = async (email, res) => {
   try {
-    console.log("Generating OTP for user ID:", _id);
+    const user = await User.findOne({ email });
+    logger.info("Generating OTP for user ID:", user._id);
     const otp = `${Math.floor(1000 + Math.random() * 9000)}`;
     const mailOptions = {
       from: config.EMAIL_USER,
@@ -55,7 +56,7 @@ const sendOTPVerificationEmail = async (_id, email, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedOTP = await bcrypt.hash(otp, salt);
     const newOTPverification = new userOtpVerification({
-      userId: _id,
+      userId: user._id,
       otp: hashedOTP,
       createdat: Date.now(),
       expiredat: Date.now() + 3600000,
@@ -74,11 +75,11 @@ const sendOTPVerificationEmail = async (_id, email, res) => {
 
     await transporter.sendMail(mailOptions);
 
-    console.log("OTP sent to:", email);
+    logger.info("OTP sent to:", email);
     res.status(200).json({
       status: "PENDING",
       message: "Verification OTP sent",
-      data: { user_id: _id, email },
+      data: { email },
     });
   } catch (error) {
     console.error("Error sending OTP:", error);
@@ -92,8 +93,9 @@ const sendOTPVerificationEmail = async (_id, email, res) => {
 // Verify OTP
 userrouter.post("/verifyOTP", validate(verifyOTPSchema), async (req, res) => {
   try {
-    let { user_id, otp } = req.body;
-    const userotprecord = await userOtpVerification.find({ userId: user_id });
+    let { email, otp } = req.body;
+    const user = await User.findOne({ email });
+    const userotprecord = await userOtpVerification.find({ userId: user._id });
     if (userotprecord.length < 1) {
       return res.status(404).json({
         status: "error",
@@ -105,22 +107,22 @@ userrouter.post("/verifyOTP", validate(verifyOTPSchema), async (req, res) => {
       const expiresat = userotprecord[0].expiresat;
 
       if (expiresat < Date.now()) {
-        await userOtpVerification.deleteMany({ userId: user_id });
+        await userOtpVerification.deleteMany({ userId: user._id });
         return res.status(404).json({
           status: "error",
           message: "OTP has expired",
         });
       } else {
         const validotp = await bcrypt.compare(otp, hashedotp);
-        console.log(validotp);
         if (!validotp) {
           return res.status(404).json({
             status: "error",
             message: "Invalid OTP",
           });
         }
-        await User.updateOne({ _id: user_id }, { verified: true });
-        await userOtpVerification.deleteMany({ userId: user_id });
+        await User.updateOne({ _id: user._id }, { verified: true });
+        await userOtpVerification.deleteMany({ userId: user._id });
+        logger.info(`Email successfully verified for ${email}`);
         return res.status(200).json({
           status: "success",
           message: "User email verified successfully",
@@ -152,7 +154,7 @@ userrouter.post(
       logger.info("Deleting User otp record");
       await userOtpVerification.deleteMany({ userId: user._id });
       logger.info("Sending OTP to:", user._id);
-      sendOTPVerificationEmail(user._id, user.email, res);
+      sendOTPVerificationEmail(user.email, res);
     } catch (err) {
       return res.status(400).json({
         status: "error",
@@ -197,49 +199,41 @@ userrouter.post("/login", validate(loginSchema), async (req, res) => {
 });
 
 //forgot password
-// userrouter.post("/forgotpassword", async (req, res) => {
-//   const { email } = req.body;
-//   try {
-//     const user = await findUserByEmail(email);
-//     // Send verification email
-//     const token = jwt.sign({ userId: user._id }, secret, { expiresIn: "1h" });
-//     const transporter = nodemailer.createTransport({
-//       service: "gmail",
-//       auth: { user: "your_email@gmail.com", pass: "your_email_password" },
-//     });
-//     const mailOptions = {
-//       from: "your_email@gmail.com",
-//       to: user.email,
-//       subject: "Verify Your Email",
-//       text: `Click this link to change password: http://localhost:3000/api/users/newpassword/${token}`,
-//     };
-//     await transporter.sendMail(mailOptions);
+userrouter.post("/forgotpassword", async (req, res) => {
+  const { email } = req.body;
+  try {
+    const user = await User.findOne({ email });
+    user.verified = false;
+    await user.save();
+    logger.info(`Send token to reset password to ${user._id}`);
+    sendOTPVerificationEmail(user.email, res);
+  } catch (err) {
+    return res.status(500).json({
+      status: "error",
+      message: err.message,
+      error: "Internal Server Error",
+    });
+  }
+});
 
-//     return res.status(200).json({
-//       status: "success",
-//       message: "verification email sent",
-//     });
-//   } catch (err) {
-//     return res.status(500).json({
-//       status: "error",
-//       message: err.message,
-//       error: "Internal Server Error",
-//     });
-//   }
-// });
-
-// //new password
-// userrouter.get(
-//   "/newpassword/:token",
+//new password
+// userrouter.post(
+//   "/newpassword/",
 //   validate(forgotPasswordSchema),
 //   async (req, res) => {
+//     const { email, password } = req.body;
 //     try {
-//       const decoded = jwt.verify(req.params.token, secret);
-//       const user = await User.findById(decoded.userId);
+//       const user = await User.findOne({ email });
 //       if (!user) {
 //         return res.status(404).json({
 //           status: "error",
 //           message: "User not found",
+//         });
+//       }
+//       if (!user.verified) {
+//         return res.status(404).json({
+//           status: "error",
+//           message: "User is not found",
 //         });
 //       }
 //       user.password = password;
