@@ -1,8 +1,7 @@
 const schedule = require("node-schedule");
 const nodemailer = require("nodemailer");
-const schedule = require("node-schedule");
 const Reminder = require("../models/reminderbot");
-const logger = require("./utils/logger");
+const logger = require("../utils/logger");
 
 const sendEmail = (userEmail, reminderText) => {
   const mailOptions = {
@@ -14,9 +13,9 @@ const sendEmail = (userEmail, reminderText) => {
 
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
-      console.log(`Error: ${error}`);
+      logger.error(`Error: ${error}`);
     } else {
-      console.log(`Email sent: ${info.response}`);
+      logger.info(`Email sent: ${info.response}`);
     }
   });
 };
@@ -62,9 +61,9 @@ const addReminder = (user, time) => {
   const newReminder = new Reminder({ user, hour, mins });
   newReminder.save((err) => {
     if (err) {
-      console.error("Error saving reminder:", err);
+      logger.error("Error saving reminder:", err);
     } else {
-      console.log("Reminder saved:", newReminder);
+      logger.info("Reminder saved:", newReminder);
       scheduleReminder(newReminder); // Schedule the new reminder
     }
   });

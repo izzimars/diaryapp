@@ -9,34 +9,36 @@ const requestLogger = (request, response, next) => {
 };
 
 const unknownEndpoint = (request, response) => {
-  return res.status(400).json({
+  return response.status(400).json({
     status: "error",
     message: error.message,
-    error: "unknown endpoint",
   });
 };
 
-// const errorHandler = (error, request, response, next) => {
-//   logger.error(error.message);
+const errorHandler = (error, request, response, next) => {
+  logger.error(error.message);
 
-//   if (error.name === "CastError") {
-//     return res.status(400).json({
-//       status: "error",
-//       message: error.message,
-//       error: "malformatted id",
-//     });
-//   } else if (error.name === "ValidationError") {
-//     return res.status(400).json({
-//       status: "error",
-//       message: error.message,
-//       error: "ValidationError",
-//     });
-//   }
-
-//   next(error);
-// };
+  if (error.name === "CastError") {
+    return response.status(400).json({
+      status: "error",
+      message: error.message,
+    });
+  } else if (error.name === "ValidationError") {
+    return response.status(400).json({
+      status: "error",
+      message: error.message,
+    });
+  } else if (error.name === "ReferenceError") {
+    return response.status(400).json({
+      status: "error",
+      message: error.message,
+    });
+  }
+  next(error);
+};
 
 module.exports = {
   requestLogger,
+  errorHandler,
   unknownEndpoint,
 };

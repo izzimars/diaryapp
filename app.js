@@ -7,7 +7,6 @@ const userRoutes = require("./controllers/user");
 const diaryRoutes = require("./controllers/diary");
 const cors = require("cors");
 const middleware = require("./utils/middleware");
-const errorHandler = require("./utils/errorHandler")
 
 const app = express();
 
@@ -21,7 +20,7 @@ mongoose
 app.use(cors());
 app.use(express.static("dist"));
 app.use(express.json());
-app.use(middleware.requestLogger);
+//app.use(middleware.requestLogger);
 app.use(bodyParser.json());
 
 // Use routes
@@ -30,6 +29,6 @@ app.use("/api/diaries", diaryRoutes);
 
 //middleware to handle errors in utils module
 app.use(middleware.unknownEndpoint);
-app.use(errorHandler);
+app.use(middleware.errorHandler);
 
 module.exports = app;
