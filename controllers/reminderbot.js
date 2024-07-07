@@ -22,9 +22,9 @@ const sendEmail = (userEmail, reminderText) => {
       user: config.EMAIL_USER,
       pass: config.EMAIL_PASS,
     },
-  });
+});
 
-  transporter.sendMail(mailOptions, (error, info) => {
+transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
       logger.error(`Error: ${error}`);
     } else {
@@ -88,4 +88,24 @@ const addReminder = (user, time) => {
   });
 };
 
-module.exports = { addReminder, scheduleAllReminders };
+
+// Function to delete a reminder
+async function deleteReminders(userId) {
+  try {
+    const reminders = await Reminder.find({ userId });
+    
+    for (const reminder of reminders) {
+      const job = schedule.scheduledJobs[reminder._id];
+      if (job) {
+        job.cancel();
+      }
+      await Reminder.findByIdAndDelete(reminder._id);
+      logger.info(`Deleted reminder with ID: ${reminder._id}`);
+    }
+  } catch (err) {
+    logger.error(`Error deleting reminders for user ${userId}: ${err.message}`);
+  }
+}
+
+
+module.exports = { addReminder, scheduleAllReminders, deleteReminders };
