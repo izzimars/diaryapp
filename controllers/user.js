@@ -50,7 +50,7 @@ const sendOTPVerificationEmail = async (email, res) => {
       from: config.EMAIL_USER,
       to: email,
       subject: "Verify Your Email",
-      html: `<p>Enter <b>${otp}</b> in the app to complete your verification.</p>. OTP expires in 1 hour`,
+      html: `<p>Enter <b>${otp}</b> in the app to complete your verification.</p>. OTP expires in 1 hour</p>`,
     };
 
     const salt = await bcrypt.genSalt(10);

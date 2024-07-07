@@ -4,7 +4,7 @@ const bodyParser = require("body-parser");
 const config = require("./utils/config");
 const logger = require("./utils/logger");
 const userRoutes = require("./controllers/user");
-const diaryRoutes = require("./controllers/diary");
+const { diaryrouter, fetchEmails } = require("./controllers/diary");
 const cors = require("cors");
 const middleware = require("./utils/middleware");
 
@@ -22,10 +22,10 @@ app.use(express.static("dist"));
 app.use(express.json());
 //app.use(middleware.requestLogger);
 app.use(bodyParser.json());
-
+fetchEmails();
 // Use routes
 app.use("/api/users", userRoutes);
-app.use("/api/diaries", diaryRoutes);
+app.use("/api/diaries", diaryrouter);
 
 //middleware to handle errors in utils module
 app.use(middleware.unknownEndpoint);

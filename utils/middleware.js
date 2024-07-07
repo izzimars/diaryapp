@@ -1,4 +1,29 @@
-const logger = require("./logger");
+const logger = require("../utils/logger");
+const jwt = require("jsonwebtoken");
+const config = require("../utils/config");
+
+const verifyToken = (req, res, next) => {
+  const token = req.headers["authorization"];
+  if (!token) {
+    return res.status(403).json({
+      status: "error",
+      message: "No token provided",
+    });
+  }
+  // Bearer token handling if token comes in the format 'Bearer <token>'
+  const bearerToken = token.split(" ")[1];
+  jwt.verify(bearerToken, config.SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).json({
+        status: "error",
+        message: "Failed to authenticate token",
+      });
+    }
+    // If token is successfully verified, attach userId to request object
+    req.userId = decoded.userId;
+    next();
+  });
+};
 
 const requestLogger = (request, response, next) => {
   logger.info("Method:", request.method);
@@ -42,4 +67,5 @@ module.exports = {
   requestLogger,
   errorHandler,
   unknownEndpoint,
+  verifyToken,
 };
