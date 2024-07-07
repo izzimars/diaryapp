@@ -15,6 +15,8 @@ const {
   forgotPasswordSchema,
   dateSchema,
   verifyOTPSchema,
+  timeSchema,
+  personalInfoSchema,
 } = require("../models/validationschema");
 const validate = require("../utils/validate");
 const makeReminder = require("../models/reminderbot");
@@ -256,10 +258,10 @@ userrouter.post("/forgotpassword", async (req, res) => {
 // );
 
 //setting up user
-userrouter.post("/setup", middleware.verifyToken, async (req, res) => {
+userrouter.post("/setup",validate(timeSchema), middleware.verifyToken, async (req, res) => {
   //I need a JOI schema to verify what's coming in the req.body.reminders
   const { reminders } = req.body;
-  //reminders = {"12:30am", "5:40am","10:30am"}
+  //reminders = {"12:30 am", "5:40 am","10:30 am"}
   try {
     reminders.map((i) => {
       addReminder(req.userId, i);
@@ -299,7 +301,7 @@ userrouter.get("/personalinfo", middleware.verifyToken, async (req, res) => {
   }
 });
 
-userrouter.post("/personalinfo", middleware.verifyToken, async (req, res) => {
+userrouter.post("/personalinfo",validate(personalInfoSchema), middleware.verifyToken, async (req, res) => {
   //JOI validator needed here
   const { fullname, username, phonenumber } = req.body;
   try {
