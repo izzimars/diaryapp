@@ -6,6 +6,7 @@ const User = require("../models/user");
 const userrouter = express.Router();
 const config = require("../utils/config");
 const logger = require("../utils/logger");
+const middleware = require("../utils/middleware");
 const secret = config.SECRET;
 const {
   signupSchema,
@@ -185,9 +186,12 @@ userrouter.post("/login", validate(loginSchema), async (req, res) => {
     const token = jwt.sign({ userId: user._id }, secret, { expiresIn: "1h" });
     return res.status(200).json({
       status: "success",
-      token: token,
-      username: user.username,
-      email: user.email,
+      message: "user signed in successfully",
+      data: [
+        { token: token },
+        { username: user.username },
+        { email: user.email },
+      ],
     });
   } catch (err) {
     console.log(err);
@@ -251,65 +255,100 @@ userrouter.post("/forgotpassword", async (req, res) => {
 //   }
 // );
 
-// setting up user
-// userrouter.post("/setup", async (req, res) => {
-//   const { reminders } = req.body;
-//   //reminders = {"12:30am", "5:40am","10:30am"}
-//   try {
-//     const user = await findUserByEmail(email);
-//     if (!user || !(await bcrypt.compare(password, user.password))) {
-//       return res.status(400).json({
+//setting up user
+userrouter.post("/setup", middleware.verifyToken, async (req, res) => {
+  //I need a JOI schema to verify what's coming in the req.body.reminders
+  const { reminders } = req.body;
+  //reminders = {"12:30am", "5:40am","10:30am"}
+  try {
+    reminders.map((i) => {
+      addReminder(req.userId, i);
+    });
+    return res.status(200).json({
+      status: "success",
+      message: "reminder set up successful.",
+    });
+  } catch (err) {
+    return res.status(500).json({
+      status: "error",
+      message: err.message,
+    });
+  }
+});
+
+//change personal settings
+userrouter.get("/personalinfo", middleware.verifyToken, async (req, res) => {
+  try {
+    const user = await User.findOne({ _id: req.userId });
+    return res.status(200).json({
+      status: "success",
+      message: "User data successfully retrieved",
+      data: [
+        { fullname: user.fullname },
+        { username: user.username },
+        { email: user.email },
+        { phonenumber: user.phonenumber },
+        { verified: user.verified },
+      ],
+    });
+  } catch (err) {
+    return res.status(500).json({
+      status: "error",
+      message: err.message,
+    });
+  }
+});
+
+userrouter.post("/personalinfo", middleware.verifyToken, async (req, res) => {
+  //JOI validator needed here
+  const { fullname, username, phonenumber } = req.body;
+  try {
+    const user = await User.findOne({ _id: req.userId });
+    user.fullname = fullname || user.fullname;
+    user.username = username || user.username;
+    user.phonenumber = phonenumber || user.phonenumber;
+    await user.save();
+    return res.status(200).json({
+      status: "success",
+      message: "User details successfully edited",
+    });
+  } catch (err) {
+    return res.status(500).json({
+      status: "error",
+      message: err.message,
+    });
+  }
+});
+
+// userrouter.post(
+//   "/personalinfo/verifyuser",
+//   middleware.verifyToken,
+//   async (req, res) => {
+//     //JOI validator needed here
+//     const { password } = req.body;
+//     try {
+//       const user = await User.findOne({ _id: req.userId });
+//       if (!(await bcrypt.compare(password, user.password))) {
+//         return res.status(400).json({
+//           status: "error",
+//           message: "Invalid credentials",
+//         });
+//       }
+//       logger.info(`User ${user.username} wants to make priviledge changes.`);
+//       //logger.info("Sending OTP to:", user._id);
+//       //sendOTPVerificationEmail(user.email, res);
+//       return res.status(200).json({
+//         status: "success",
+//         message: "User verified",
+//         data: [{ priviledge: true }],
+//       });
+//     } catch (err) {
+//       console.log(err);
+//       return res.status(500).json({
 //         status: "error",
-//         message: "Invalid credentials",
+//         message: err.message,
 //       });
 //     }
-//     if (!user.emailverified || !user.numberverified) {
-//       return res.status(400).json({
-//         status: "error",
-//         message: "User not verified",
-//       });
-//     }
-//     reminders.map((i) => {
-//       addReminder(user, time);
-//     });
-//     await user.save();
-//     // need to verify token or user or get user credentials
-//     // const token = jwt.sign({ userId: user._id }, secret, { expiresIn: "1h" });
-//     // return res.status(200).json({
-//     //   status: "success",
-//     //   token: token,
-//     // });
-//   } catch (err) {
-//     return res.status(500).json({
-//       status: "error",
-//       message: err.message,
-//     });
 //   }
-// });
-
-// //change personal settings
-// userrouter.post("/personalinfo", async (req, res) => {
-//   //more input to be added
-//   const { fullname, username } = req.body;
-//   try {
-//     //I DON'T YET KNOW HOW TO GET THE USER id
-//     //const userId = userId
-//     const newValues = {
-//       fullname: fullname,
-//       username: username,
-//     };
-//     updateUser(userId, newValues).catch(logger.error);
-
-//     return res.status(200).json({
-//       status: "success",
-//       message: "User registered, verification email sent",
-//     });
-//   } catch (err) {
-//     return res.status(500).json({
-//       status: "error",
-//       message: err.message,
-//     });
-//   }
-// });
-
+// );
 module.exports = userrouter;

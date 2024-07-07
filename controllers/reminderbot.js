@@ -2,14 +2,27 @@ const schedule = require("node-schedule");
 const nodemailer = require("nodemailer");
 const Reminder = require("../models/reminderbot");
 const logger = require("../utils/logger");
+const logger = require("../utils/config");
+const { config } = require("dotenv");
+const User = require("../models/user");
 
 const sendEmail = (userEmail, reminderText) => {
   const mailOptions = {
-    from: "your-email@gmail.com",
+    from: config.EMAIL_USER,
     to: userEmail,
     subject: "Daily Reminder",
     text: reminderText,
   };
+
+  const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    auth: {
+      user: config.EMAIL_USER,
+      pass: config.EMAIL_PASS,
+    },
+  });
 
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
@@ -20,18 +33,24 @@ const sendEmail = (userEmail, reminderText) => {
   });
 };
 
-const scheduleReminder = (reminder) => {
-  const rule = new schedule.RecurrenceRule();
-  rule.hour = reminder.hour;
-  rule.minute = reminder.minute;
+const scheduleReminder = async (reminder) => {
+  try {
+    const rule = new schedule.RecurrenceRule();
+    rule.hour = reminder.hour;
+    rule.minute = reminder.minute;
+    const user = await User.findById({ _id: reminder.user });
 
-  schedule.scheduleJob(rule, () => {
-    sendEmail(
-      reminder.user.email,
-      `Hello ${reminder.user.username}, it is time for a new dairy entry in your personal dove diary. \n 
+    schedule.scheduleJob(rule, () => {
+      logger.info(`reminder scheduled for ${user._id}`);
+      sendEmail(
+        user.email,
+        `Hello ${user.username}, it is time for a new dairy entry in your personal dove diary. \n 
         Make your new entries here and view them on your dashboard later.`
-    );
-  });
+      );
+    });
+  } catch (error) {
+    logger.error(`Error scheduling reminder: ${error}`);
+  }
 };
 
 // Function to fetch reminders from database and schedule them

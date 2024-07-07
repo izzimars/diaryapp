@@ -165,6 +165,7 @@ diaryrouter.get("/", middleware.verifyToken, async (req, res) => {
 
 //Get a single diary with its id
 diaryrouter.get("/:id", middleware.verifyToken, async (req, res) => {
+  //I need a JOI schema to verify what's coming in the req.params.id
   const diary_id = req.params.id;
   try {
     const diary = await Diary.findById({ _id: diary_id });
@@ -190,6 +191,7 @@ diaryrouter.get("/:id", middleware.verifyToken, async (req, res) => {
 
 //edit a diary
 diaryrouter.patch("/:id", middleware.verifyToken, async (req, res) => {
+  //I need a JOI schema to verify what's coming in the req.params.id
   const diary_id = req.params.id;
   const { content } = req.body;
   try {
@@ -212,6 +214,7 @@ diaryrouter.patch("/:id", middleware.verifyToken, async (req, res) => {
 
 //Delete a diary
 diaryrouter.delete("/:id", middleware.verifyToken, async (req, res) => {
+  //I need a JOI schema to verify what's coming in the req.params.id
   const diary_id = req.params.id;
   try {
     await Diary.deleteOne({ _id: diary_id });
