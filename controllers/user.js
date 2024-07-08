@@ -65,6 +65,8 @@ const sendOTPVerificationEmail = async (email, res) => {
 
     const salt = await bcrypt.genSalt(10);
     const hashedOTP = await bcrypt.hash(otp, salt);
+    await userOtpVerification.deleteMany({ userId: user._id });
+    logger.info(`Deleted former otp for ${user._id}`);
     const newOTPverification = new userOtpVerification({
       userId: user._id,
       otp: hashedOTP,
@@ -212,22 +214,26 @@ userrouter.post("/login", validate(loginSchema), async (req, res) => {
 });
 
 //forgot password
-userrouter.post("/forgotpassword", async (req, res) => {
-  const { email } = req.body;
-  try {
-    const user = await User.findOne({ email });
-    user.verified = false;
-    await user.save();
-    logger.info(`Send token to reset password to ${user._id}`);
-    sendOTPVerificationEmail(user.email, res);
-  } catch (err) {
-    return res.status(500).json({
-      status: "error",
-      message: err.message,
-      error: "Internal Server Error",
-    });
+userrouter.post(
+  "/forgotpassword",
+  validate(forgotPasswordSchema),
+  async (req, res) => {
+    const { email } = req.body;
+    try {
+      const user = await User.findOne({ email });
+      user.verified = false;
+      await user.save();
+      logger.info(`Send token to reset password to ${user._id}`);
+      sendOTPVerificationEmail(user.email, res);
+    } catch (err) {
+      return res.status(500).json({
+        status: "error",
+        message: err.message,
+        error: "Internal Server Error",
+      });
+    }
   }
-});
+);
 
 //new password
 // userrouter.post(

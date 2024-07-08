@@ -11,21 +11,26 @@ const signupSchema = Joi.object({
         "Phone number must be a valid international format",
     })
     .required(),
-  password: Joi.string().min(3).max(20).required(),
+  password: Joi.string()
+    .min(8)
+    .pattern(/^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9!@#$%^&*(),.?":{}|<>]{8,}$/)
+    .messages({
+      "string.min": "Password must be at least 8 characters long",
+      "string.pattern.base": "Password must contain both letters and numbers",
+    }),
 });
 
 const personalInfoSchema = Joi.object({
-    fullname: Joi.string().min(3).max(50).optional(),
-    username: Joi.string().min(3).optional(),
-    phonenumber: Joi.string()
-      .pattern(/^\+?[1-9]\d{1,14}$/)
-      .message({
-        "string.pattern.base":
-          "Phone number must be a valid international format",
-      })
-      .optional(),
-    
-  });
+  fullname: Joi.string().min(3).max(50).optional(),
+  username: Joi.string().min(3).optional(),
+  phonenumber: Joi.string()
+    .pattern(/^\+?[1-9]\d{1,14}$/)
+    .message({
+      "string.pattern.base":
+        "Phone number must be a valid international format",
+    })
+    .optional(),
+});
 
 const verifyOTPSchema = Joi.object({
   email: Joi.string().email().required(),
@@ -40,7 +45,6 @@ const resendOTPSchema = Joi.object({
 
 const loginSchema = Joi.object({
   username: Joi.string().min(3).max(20),
-  email: Joi.string().email(),
   password: Joi.string()
     .min(8)
     .pattern(/^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9!@#$%^&*(),.?":{}|<>]{8,}$/)
@@ -48,21 +52,26 @@ const loginSchema = Joi.object({
       "string.min": "Password must be at least 8 characters long",
       "string.pattern.base": "Password must contain both letters and numbers",
     }),
-}).with("password", ["email","username"]);
+});
 
 const forgotPasswordSchema = Joi.object({
-    email: Joi.string().email().required(),
-    password: Joi.string()
+  email: Joi.string().email().required(),
+});
+
+const newPasswordSchema = Joi.object({
+  email: Joi.string().email().required(),
+  password: Joi.string()
     .min(8)
     .pattern(/^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9!@#$%^&*(),.?":{}|<>]{8,}$/)
     .messages({
       "string.min": "Password must be at least 8 characters long",
       "string.pattern.base": "Password must contain both letters and numbers",
-    }).required(),
+    })
+    .required(),
   confirmPassword: Joi.any().valid(Joi.ref("password")).required().messages({
     "any.only": "Passwords do not match",
   }),
-}).with("password", ["email"]);
+});
 
 const dateSchema = Joi.object({
   startDate: Joi.date().required(),
@@ -74,16 +83,18 @@ const dateSchema = Joi.object({
 const timePattern = /^([0-1]?[0-9]):([0-5][0-9])\s(am|pm)$/;
 
 const timeSchema = Joi.object({
-    times: Joi.array().items(
-        Joi.string().pattern(timePattern).messages({
-            'string.pattern.base': 'Must be a valid time in the format "12:30 am"'
-        })
-    ).required().messages({
-        'array.base': 'Times must be an array',
-        'any.required': 'Times are required'
-    })
+  times: Joi.array()
+    .items(
+      Joi.string().pattern(timePattern).messages({
+        "string.pattern.base": 'Must be a valid time in the format "12:30 am"',
+      })
+    )
+    .required()
+    .messages({
+      "array.base": "Times must be an array",
+      "any.required": "Times are required",
+    }),
 });
-
 
 module.exports = {
   signupSchema,
@@ -93,5 +104,6 @@ module.exports = {
   dateSchema,
   verifyOTPSchema,
   resendOTPSchema,
-  timeSchema
+  timeSchema,
+  newPasswordSchema,
 };
