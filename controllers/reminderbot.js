@@ -3,48 +3,51 @@ const nodemailer = require("nodemailer");
 const Reminder = require("../models/reminderbot");
 const logger = require("../utils/logger");
 // const logger = require("../utils/config");
-const { config } = require("dotenv");
+const config = require("../utils/config");
 const User = require("../models/user");
 
-const sendEmail = (userEmail, reminderText) => {
-  const mailOptions = {
-    from: config.EMAIL_USER,
-    to: userEmail,
-    subject: "Daily Reminder",
-    text: reminderText,
-  };
+const sendEmail = async (userEmail, reminderText) => {
+  try {
+    const mailOptions = {
+      from: config.EMAIL_USER,
+      to: userEmail,
+      subject: "Daily Reminder",
+      text: reminderText,
+    };
 
-  const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 465,
-    secure: true,
-    auth: {
-      user: config.EMAIL_USER,
-      pass: config.EMAIL_PASS,
-    },
-});
-
-transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      logger.error(`Error: ${error}`);
-    } else {
-      logger.info(`Email sent: ${info.response}`);
-    }
-  });
+    const transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      auth: {
+        user: config.EMAIL_USER,
+        pass: config.EMAIL_PASS,
+      },
+    });
+    await transporter.sendMail(mailOptions);
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 const scheduleReminder = async (reminder) => {
   try {
+    logger.info("A job is being created for the reminder");
     const rule = new schedule.RecurrenceRule();
     rule.hour = reminder.hour;
-    rule.minute = reminder.minute;
-    const user = await User.findById({ _id: reminder.user });
-
+    rule.minute = reminder.time;
+    const user = await User.findById({ _id: reminder.userId });
+    if (!user) {
+      throw new Error(`User with ID ${reminder.user} not found`);
+    }
+    logger.info(
+      `User found: ${user._id}, scheduling job for ${rule.hour}:${rule.minute}:${rule.second}`
+    );
     schedule.scheduleJob(rule, () => {
-      logger.info(`reminder scheduled for ${user._id}`);
+      logger.info(`Reminder job running for user ${user._id}`);
       sendEmail(
         user.email,
-        `Hello ${user.username}, it is time for a new dairy entry in your personal dove diary. \n 
+        `Hello ${user.username}, it is time for a new diary entry in your personal dove diary. \n 
         Make your new entries here and view them on your dashboard later.`
       );
     });
@@ -52,6 +55,30 @@ const scheduleReminder = async (reminder) => {
     logger.error(`Error scheduling reminder: ${error}`);
   }
 };
+
+// const scheduleReminder = async (reminder) => {
+//   try {
+//     logger.info("A job is being created for the reminder");
+//     const rule = new schedule.RecurrenceRule();
+//     rule.hour = reminder.hour;
+//     console.log(reminder.hour);
+//     console.log(reminder.min);
+//     rule.minute = reminder.minute;
+//     const user = await User.findById({ _id: reminder.userId });
+//     logger.info("A User has been found to create a reminder");
+
+//     schedule.scheduleJob(rule, () => {
+//       logger.info(`reminder scheduled for ${user._id}`);
+//       sendEmail(
+//         user.email,
+//         `Hello ${user.username}, it is time for a new dairy entry in your personal dove diary. \n
+//         Make your new entries here and view them on your dashboard later.`
+//       );
+//     });
+//   } catch (error) {
+//     logger.error(`Error scheduling reminder: ${error}`);
+//   }
+// };
 
 // Function to fetch reminders from database and schedule them
 const scheduleAllReminders = () => {
@@ -68,32 +95,34 @@ const scheduleAllReminders = () => {
 };
 
 // Example of adding a new reminder to the database
-const addReminder = (user, time) => {
+const addReminder = async (user, time) => {
   let hour;
   const divTime = time.split(/[: ]/);
   if (divTime[2] == "am") {
     hour = divTime[0];
   } else {
-    hour = Number(divTime[0]) + 12 < 24 ? divTime[0] * 2 : 0;
+    let temp_hour = Number(divTime[0]) + 12;
+    hour = temp_hour < 24 ? temp_hour : 0;
   }
   const mins = Number(divTime[1]);
-  const newReminder = new Reminder({ user, hour, mins });
-  newReminder.save((err) => {
-    if (err) {
-      logger.error("Error saving reminder:", err);
-    } else {
-      logger.info("Reminder saved:", newReminder);
-      scheduleReminder(newReminder); // Schedule the new reminder
-    }
-  });
+  try {
+    const newReminder = new Reminder({ userId: user, hour: hour, time: mins });
+    await newReminder.save();
+    logger.info(`Reminder saved for ${newReminder._id}`);
+    await scheduleReminder(newReminder);
+    logger.info(`The reminder has been set for ${newReminder._id}`);
+    return { status: "success" };
+  } catch (err) {
+    logger.info(`A reminder failed ${err.message}`);
+    return { status: "error" };
+  }
 };
-
 
 // Function to delete a reminder
 async function deleteReminders(userId) {
   try {
     const reminders = await Reminder.find({ userId });
-    
+
     for (const reminder of reminders) {
       const job = schedule.scheduledJobs[reminder._id];
       if (job) {
@@ -106,6 +135,5 @@ async function deleteReminders(userId) {
     logger.error(`Error deleting reminders for user ${userId}: ${err.message}`);
   }
 }
-
 
 module.exports = { addReminder, scheduleAllReminders, deleteReminders };

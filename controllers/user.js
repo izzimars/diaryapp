@@ -18,6 +18,9 @@ const {
   timeSchema,
   personalInfoSchema,
   newPasswordSchema,
+  setupPasswdSchema,
+  changeemailSchema,
+  changeemailVerifySchema,
 } = require("../models/validationschema");
 const validate = require("../utils/validate");
 const makeReminder = require("../models/reminderbot");
@@ -56,7 +59,7 @@ const sendOTPVerificationEmail = async (email, res) => {
   try {
     const user = await User.findOne({ email });
     logger.info("Generating OTP for user ID:", user._id);
-    const otp = `${Math.floor(1000 + Math.random() * 9000)}`;
+    const otp = `${Math.floor(100000 + Math.random() * 900000)}`;
     const mailOptions = {
       from: config.EMAIL_USER,
       to: email,
@@ -150,7 +153,7 @@ userrouter.post("/verifyOTP", validate(verifyOTPSchema), async (req, res) => {
   }
 });
 
-//reverify token
+//resend token
 userrouter.post(
   "/resendOTPCode",
   validate(resendOTPSchema),
@@ -277,23 +280,29 @@ userrouter.post(
   validate(timeSchema),
   middleware.verifyToken,
   async (req, res) => {
-    //I need a JOI schema to verify what's coming in the req.body.reminders
-    const { reminders } = req.body;
-    //reminders = {"12:30 am", "5:40 am","10:30 am"}
-    try {
-      reminders.map((i) => {
-        addReminder(req.userId, i);
-      });
-      return res.status(200).json({
-        status: "success",
-        message: "reminder set up successful.",
-      });
-    } catch (err) {
-      return res.status(500).json({
-        status: "error",
-        message: err.message,
-      });
+    //{"times":["00:30 am", "5:40 pm","8:15 pm"]}
+    var suc = 0;
+    var fai = 0;
+    const reminders = req.body.times;
+    for (const time of reminders) {
+      try {
+        let rem = await addReminder(req.userId, time);
+        if (rem.status === "success") {
+          suc += 1;
+        } else if (rem.status === "error") {
+          fai += 1;
+        }
+      } catch (err) {
+        return res.status(500).json({
+          status: "error",
+          message: err.message,
+        });
+      }
     }
+    return res.status(200).json({
+      status: "success",
+      message: `${fai} failures and ${suc} success`,
+    });
   }
 );
 
@@ -325,7 +334,6 @@ userrouter.post(
   validate(personalInfoSchema),
   middleware.verifyToken,
   async (req, res) => {
-    //JOI validator needed here
     const { fullname, username, phonenumber } = req.body;
     try {
       const user = await User.findOne({ _id: req.userId });
@@ -346,35 +354,109 @@ userrouter.post(
   }
 );
 
-// userrouter.post(
-//   "/personalinfo/verifyuser",
-//   middleware.verifyToken,
-//   async (req, res) => {
-//     //JOI validator needed here
-//     const { password } = req.body;
-//     try {
-//       const user = await User.findOne({ _id: req.userId });
-//       if (!(await bcrypt.compare(password, user.password))) {
-//         return res.status(400).json({
-//           status: "error",
-//           message: "Invalid credentials",
-//         });
-//       }
-//       logger.info(`User ${user.username} wants to make priviledge changes.`);
-//       //logger.info("Sending OTP to:", user._id);
-//       //sendOTPVerificationEmail(user.email, res);
-//       return res.status(200).json({
-//         status: "success",
-//         message: "User verified",
-//         data: [{ priviledge: true }],
-//       });
-//     } catch (err) {
-//       console.log(err);
-//       return res.status(500).json({
-//         status: "error",
-//         message: err.message,
-//       });
-//     }
-//   }
-// );
+userrouter.post(
+  "/personalinfo/changepassword",
+  validate(setupPasswdSchema),
+  middleware.verifyToken,
+  async (req, res) => {
+    const { oldpassword, password } = req.body;
+    try {
+      const user = await User.findOne({ _id: req.userId });
+      if (!user || !(await bcrypt.compare(oldpassword, user.password))) {
+        return res.status(400).json({
+          status: "error",
+          message: "old password invalid",
+        });
+      }
+      user.password = password;
+      await user.save();
+      logger.info(`User ${user.username} has successfully changed password.`);
+      return res.status(200).json({
+        status: "success",
+        message: "Password successfuly changed",
+      });
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({
+        status: "error",
+        message: err.message,
+      });
+    }
+  }
+);
+
+userrouter.post(
+  "/personalinfo/changeemail",
+  validate(changeemailSchema),
+  middleware.verifyToken,
+  async (req, res) => {
+    const { email } = req.body;
+    try {
+      const user = await User.findOne({ _id: req.userId });
+      user.verified = false;
+      user.email = email;
+      await user.save();
+      logger.info("Deleting User otp record");
+      await userOtpVerification.deleteMany({ userId: user._id });
+      sendOTPVerificationEmail(email, res);
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({
+        status: "error",
+        message: err.message,
+      });
+    }
+  }
+);
+
+userrouter.post(
+  "/personalinfo/changeemail/verify",
+  validate(changeemailVerifySchema),
+  middleware.verifyToken,
+  async (req, res) => {
+    const { otp } = req.body;
+    try {
+      const userotprecord = await userOtpVerification.find({
+        userId: req.userId,
+      });
+      if (userotprecord.length < 1) {
+        return res.status(404).json({
+          status: "error",
+          message: "Restricted access to user",
+        });
+      } else {
+        const hashedotp = userotprecord[0].otp;
+        const expiresat = userotprecord[0].expiresat;
+
+        if (expiresat < Date.now()) {
+          await userOtpVerification.deleteMany({ userId: req.userId });
+          return res.status(404).json({
+            status: "error",
+            message: "OTP has expired",
+          });
+        } else {
+          const validotp = await bcrypt.compare(otp, hashedotp);
+          if (!validotp) {
+            return res.status(404).json({
+              status: "error",
+              message: "Invalid OTP",
+            });
+          }
+          await User.updateOne({ _id: req.userId }, { verified: true });
+          await userOtpVerification.deleteMany({ userId: req.userId });
+          logger.info(`Email successfully verified for ${req.userId}`);
+          return res.status(200).json({
+            status: "success",
+            message: "User email verified successfully",
+          });
+        }
+      }
+    } catch (err) {
+      return res.status(400).json({
+        status: "error",
+        message: err.message,
+      });
+    }
+  }
+);
 module.exports = userrouter;

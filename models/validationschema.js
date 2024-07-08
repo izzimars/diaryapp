@@ -34,7 +34,7 @@ const personalInfoSchema = Joi.object({
 
 const verifyOTPSchema = Joi.object({
   email: Joi.string().email().required(),
-  otp: Joi.string().max(4).required().messages({
+  otp: Joi.string().max(6).required().messages({
     "any.only": "Invalid OTP",
   }),
 });
@@ -96,6 +96,30 @@ const timeSchema = Joi.object({
     }),
 });
 
+const setupPasswdSchema = Joi.object({
+  oldpassword: Joi.string().required(),
+  password: Joi.string()
+    .min(8)
+    .pattern(/^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9!@#$%^&*(),.?":{}|<>]{8,}$/)
+    .messages({
+      "string.min": "Password must be at least 8 characters long",
+      "string.pattern.base": "Password must contain both letters and numbers",
+    })
+    .required(),
+  confirmPassword: Joi.any().valid(Joi.ref("password")).required().messages({
+    "any.only": "Passwords do not match",
+  }),
+});
+
+const changeemailSchema = Joi.object({
+  email: Joi.string().email().required(),
+});
+
+const changeemailVerifySchema = Joi.object({
+  otp: Joi.string().max(6).required().messages({
+    "any.only": "Invalid OTP",
+  }),
+});
 module.exports = {
   signupSchema,
   personalInfoSchema,
@@ -106,4 +130,7 @@ module.exports = {
   resendOTPSchema,
   timeSchema,
   newPasswordSchema,
+  setupPasswdSchema,
+  changeemailSchema,
+  changeemailVerifySchema,
 };
