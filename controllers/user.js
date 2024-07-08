@@ -30,7 +30,7 @@ userrouter.post("/signup", validate(signupSchema), async (req, res) => {
   const { fullname, username, email, phonenumber, password } = req.body;
   try {
     let user;
-    user = User.find({ email: email });
+    user = await User.findOne({ email: email });
     if (user) {
       return res.status(400).json({
         status: "error",
@@ -265,25 +265,30 @@ userrouter.post("/forgotpassword", async (req, res) => {
 // );
 
 //setting up user
-userrouter.post("/setup",validate(timeSchema), middleware.verifyToken, async (req, res) => {
-  //I need a JOI schema to verify what's coming in the req.body.reminders
-  const { reminders } = req.body;
-  //reminders = {"12:30 am", "5:40 am","10:30 am"}
-  try {
-    reminders.map((i) => {
-      addReminder(req.userId, i);
-    });
-    return res.status(200).json({
-      status: "success",
-      message: "reminder set up successful.",
-    });
-  } catch (err) {
-    return res.status(500).json({
-      status: "error",
-      message: err.message,
-    });
+userrouter.post(
+  "/setup",
+  validate(timeSchema),
+  middleware.verifyToken,
+  async (req, res) => {
+    //I need a JOI schema to verify what's coming in the req.body.reminders
+    const { reminders } = req.body;
+    //reminders = {"12:30 am", "5:40 am","10:30 am"}
+    try {
+      reminders.map((i) => {
+        addReminder(req.userId, i);
+      });
+      return res.status(200).json({
+        status: "success",
+        message: "reminder set up successful.",
+      });
+    } catch (err) {
+      return res.status(500).json({
+        status: "error",
+        message: err.message,
+      });
+    }
   }
-});
+);
 
 //change personal settings
 userrouter.get("/personalinfo", middleware.verifyToken, async (req, res) => {
@@ -308,26 +313,31 @@ userrouter.get("/personalinfo", middleware.verifyToken, async (req, res) => {
   }
 });
 
-userrouter.post("/personalinfo",validate(personalInfoSchema), middleware.verifyToken, async (req, res) => {
-  //JOI validator needed here
-  const { fullname, username, phonenumber } = req.body;
-  try {
-    const user = await User.findOne({ _id: req.userId });
-    user.fullname = fullname || user.fullname;
-    user.username = username || user.username;
-    user.phonenumber = phonenumber || user.phonenumber;
-    await user.save();
-    return res.status(200).json({
-      status: "success",
-      message: "User details successfully edited",
-    });
-  } catch (err) {
-    return res.status(500).json({
-      status: "error",
-      message: err.message,
-    });
+userrouter.post(
+  "/personalinfo",
+  validate(personalInfoSchema),
+  middleware.verifyToken,
+  async (req, res) => {
+    //JOI validator needed here
+    const { fullname, username, phonenumber } = req.body;
+    try {
+      const user = await User.findOne({ _id: req.userId });
+      user.fullname = fullname || user.fullname;
+      user.username = username || user.username;
+      user.phonenumber = phonenumber || user.phonenumber;
+      await user.save();
+      return res.status(200).json({
+        status: "success",
+        message: "User details successfully edited",
+      });
+    } catch (err) {
+      return res.status(500).json({
+        status: "error",
+        message: err.message,
+      });
+    }
   }
-});
+);
 
 // userrouter.post(
 //   "/personalinfo/verifyuser",
