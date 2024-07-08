@@ -2,7 +2,7 @@ const schedule = require("node-schedule");
 const nodemailer = require("nodemailer");
 const Reminder = require("../models/reminderbot");
 const logger = require("../utils/logger");
-const logger = require("../utils/config");
+// const logger = require("../utils/config");
 const { config } = require("dotenv");
 const User = require("../models/user");
 

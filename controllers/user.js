@@ -27,9 +27,16 @@ const { getLogger } = require("nodemailer/lib/shared");
 userrouter.post("/signup", validate(signupSchema), async (req, res) => {
   const { fullname, username, email, phonenumber, password } = req.body;
   try {
-    const user = new User({ fullname, username, email, phonenumber, password });
+    let user;
+    user = User.find({ email: email });
+    if (user) {
+      return res.status(400).json({
+        status: "error",
+        message: "Email already exist",
+      });
+    }
+    user = new User({ fullname, username, email, phonenumber, password });
     const result = await user.save();
-    logger.info("User saved:", result);
     logger.info("Sending OTP to:", result._id, result.email);
     sendOTPVerificationEmail(result.email, res);
   } catch (err) {
