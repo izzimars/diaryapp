@@ -7,6 +7,7 @@ const userRoutes = require("./controllers/user");
 const { diaryrouter, fetchEmails } = require("./controllers/diary");
 const cors = require("cors");
 const middleware = require("./utils/middleware");
+const { swaggerUi, swaggerDocs } = require("./swagger");
 
 const app = express();
 
@@ -26,6 +27,7 @@ fetchEmails();
 // Use routes
 app.use("/api/users", userRoutes);
 app.use("/api/diaries", diaryrouter);
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 //middleware to handle errors in utils module
 app.use(middleware.unknownEndpoint);

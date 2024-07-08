@@ -1,0 +1,40 @@
+# docs/users/login.yaml
+paths:
+  /users/login:
+    post:
+      summary: "Login a registered user"
+      description: "Login a registered user and sends a token"
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        "200":
+          description: "user signed in successfully"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      email:
+                        type: string
+        "400":
+          description: "Invalid credentials"
+        "500":
+          description: "Internal server error"

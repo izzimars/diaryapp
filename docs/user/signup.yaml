@@ -1,0 +1,46 @@
+# docs/users/signup.yaml
+paths:
+  /users/signup:
+    post:
+      summary: "Sign up a new user"
+      description: "Registers a new user and sends an OTP"
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fullname:
+                  type: string
+                username:
+                  type: string
+                email:
+                  type: string
+                phonenumber:
+                  type: string
+                password:
+                  type: string
+      responses:
+        "200":
+          description: "Verification OTP sent"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      email:
+                        type: string
+        "400":
+          description: "Email already exist"
+        "500":
+          description: "Internal server error"
