@@ -136,4 +136,19 @@ async function deleteReminders(userId) {
   }
 }
 
-module.exports = { addReminder, scheduleAllReminders, deleteReminders };
+async function deleteReminder(reminderId) {
+  try {
+    const reminder = await Reminder.find({ reminderId });
+    const job = schedule.scheduledJobs[reminder._id];
+    if (job) {
+      job.cancel();
+    }
+    await Reminder.findByIdAndDelete(reminder._id);
+    logger.info(`Deleted reminder with ID: ${reminder._id}`);
+
+  } catch (err) {
+    logger.error(`Error deleting reminders for user ${userId}: ${err.message}`);
+  }
+}
+
+module.exports = { addReminder, scheduleAllReminders, deleteReminders, deleteReminder };
