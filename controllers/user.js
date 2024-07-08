@@ -17,6 +17,7 @@ const {
   verifyOTPSchema,
   timeSchema,
   personalInfoSchema,
+  newPasswordSchema,
 } = require("../models/validationschema");
 const validate = require("../utils/validate");
 const makeReminder = require("../models/reminderbot");
@@ -236,39 +237,39 @@ userrouter.post(
 );
 
 //new password
-// userrouter.post(
-//   "/newpassword/",
-//   validate(forgotPasswordSchema),
-//   async (req, res) => {
-//     const { email, password } = req.body;
-//     try {
-//       const user = await User.findOne({ email });
-//       if (!user) {
-//         return res.status(404).json({
-//           status: "error",
-//           message: "User not found",
-//         });
-//       }
-//       if (!user.verified) {
-//         return res.status(404).json({
-//           status: "error",
-//           message: "User is not found",
-//         });
-//       }
-//       user.password = password;
-//       await user.save();
-//       return res.status(200).json({
-//         status: "success",
-//         message: "password successfully changed",
-//       });
-//     } catch (err) {
-//       return res.status(400).json({
-//         status: "error",
-//         message: "Invalid or expired token",
-//       });
-//     }
-//   }
-// );
+userrouter.post(
+  "/newpassword/",
+  validate(newPasswordSchema),
+  async (req, res) => {
+    const { email, password } = req.body;
+    try {
+      const user = await User.findOne({ email });
+      if (!user) {
+        return res.status(404).json({
+          status: "error",
+          message: "User not found",
+        });
+      }
+      if (!user.verified) {
+        return res.status(404).json({
+          status: "error",
+          message: "User is not found",
+        });
+      }
+      user.password = password;
+      await user.save();
+      return res.status(200).json({
+        status: "success",
+        message: "password successfully changed",
+      });
+    } catch (err) {
+      return res.status(400).json({
+        status: "error",
+        message: "Invalid or expired token",
+      });
+    }
+  }
+);
 
 //setting up user
 userrouter.post(
