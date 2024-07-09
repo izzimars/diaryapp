@@ -47,7 +47,6 @@ const errorHandler = (error, request, response, next) => {
       message: error.message,
     });
   } else if (error.name === "ReferenceError") {
-    console.log(error);
     return response.status(400).json({
       status: "error",
       message: error.message,
@@ -57,9 +56,10 @@ const errorHandler = (error, request, response, next) => {
 };
 
 const unknownEndpoint = (err, req, res, next) => {
+  logger.error(err);
   return res.status(404).json({
     status: "error",
-    message: err.message || "Unknown endpoint",
+    message: "Unknown endpoint",
   });
 };
 

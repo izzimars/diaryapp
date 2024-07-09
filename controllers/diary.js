@@ -1,7 +1,11 @@
 const express = require("express");
 const Diary = require("../models/diary");
 const User = require("../models/user");
-const { dateSchema } = require("../models/validationschema");
+const {
+  dateSchema,
+  getDiarySchema,
+  postSchema,
+} = require("../models/validationschema");
 //const User = require("../models/user");
 const diaryrouter = express.Router();
 const config = require("../utils/config");
@@ -44,22 +48,27 @@ const fetchEmails = async () => {
       let subject = rawEmailContentHead["subject"][0].toLowerCase();
       let boundary = rawEmailContentHead["content-type"][0].split(`"`);
       boundary = boundary[1];
+      let text;
       if (subject.includes("diary")) {
         const rawEmailContentText = item.parts.find(
           (part) => part.which === "TEXT"
         ).body;
-        if (!rawEmailContentText instanceof String) {
+        if (rawEmailContentText.includes(boundary)) {
           text = rawEmailContentText.split(boundary);
+          //console.log(typeof text);
+          //console.log(text);
           //`Content-Type: text/plain; charset="UTF-8"`;
           text = text[1];
-          console.log(text);
+          //console.log(text);
           text = text.replace(
             /Content-Type: text\/plain; charset="UTF-8"\r?\n\r?\n/,
             ""
           );
           text = text.slice(0, text.lastIndexOf("--"));
+          text = text.trim();
         } else {
           text = rawEmailContentText;
+          text = text.trim();
         }
         try {
           if (subject.toLowerCase().includes("diary") && emailaddress) {
@@ -125,43 +134,91 @@ cron.schedule("*/5 * * * *", async () => {
 });
 
 // Add Diary Entry
-diaryrouter.post("/", middleware.verifyToken, async (req, res) => {
-  const { content } = req.body;
-  try {
-    const diary = new Diary({ userId: req.userId, content });
-    logger.info(`A log has been succesfully saved by ${req.userId}`);
-    await diary.save();
-    return res.status(201).json({
-      status: "success",
-      message: "Diary succesfully saved",
-      data: diary,
-    });
-  } catch (err) {
-    return res.status(500).json({
-      status: "error",
-      message: err.message,
-      error: "Internal Server Error",
-    });
+diaryrouter.post(
+  "/",
+  validate(postSchema),
+  middleware.verifyToken,
+  async (req, res) => {
+    const { content } = req.body;
+    try {
+      const diary = new Diary({ userId: req.userId, content });
+      logger.info(`A log has been succesfully saved by ${req.userId}`);
+      await diary.save();
+      return res.status(201).json({
+        status: "success",
+        message: "Diary succesfully saved",
+        data: diary,
+      });
+    } catch (err) {
+      return res.status(500).json({
+        status: "error",
+        message: err.message,
+        error: "Internal Server Error",
+      });
+    }
   }
-});
+);
 
 // Get All Diary Entries
-diaryrouter.get("/", middleware.verifyToken, async (req, res) => {
-  try {
-    const diaries = await Diary.find({ userId: req.userId }).sort({ date: -1 });
-    return res.status(200).json({
-      status: "success",
-      message: "Diaries succesfully retrieved",
-      data: diaries,
-    });
-  } catch (err) {
-    return res.status(500).json({
-      status: "error",
-      message: err.message,
-      error: "Internal Server Error",
-    });
+diaryrouter.get(
+  "/",
+  validate(getDiarySchema),
+  middleware.verifyToken,
+  async (req, res) => {
+    const { startDate, endDate, limit, page } = req.body;
+    const paginationLimit = limit || 12;
+    const paginationPage = page || 1;
+    try {
+      const diaries = await Diary.find({ userId: req.userId })
+        .sort({ date: -1 })
+        .limit(paginationLimit)
+        .skip((paginationPage - 1) * paginationLimit);
+      return res.status(200).json({
+        status: "success",
+        message: "Diaries succesfully retrieved",
+        data: diaries,
+      });
+    } catch (err) {
+      return res.status(500).json({
+        status: "error",
+        message: err.message,
+        error: "Internal Server Error",
+      });
+    }
   }
-});
+);
+
+// Filter Diary Entries by Date Range
+diaryrouter.get(
+  "/filter",
+  validate(dateSchema),
+  middleware.verifyToken,
+  async (req, res) => {
+    const { startDate, endDate, limit, page } = req.body;
+    const paginationLimit = limit || 12;
+    const paginationPage = page || 1;
+    try {
+      const diaries = await Diary.find({
+        userId: req.userId,
+        date: { $gte: new Date(startDate), $lte: new Date(endDate) },
+      })
+        .sort({ date: -1 })
+        .limit(paginationLimit)
+        .skip((paginationPage - 1) * paginationLimit);
+      return res.status(200).json({
+        status: "success",
+        message: "Diaries succesfully retrieved",
+        data: diaries,
+      });
+    } catch (err) {
+      return res.status(500).json({
+        status: "error",
+        message: err.message,
+        error: "Internal Server Error",
+      });
+    }
+  }
+);
 
 //Get a single diary with its id
 diaryrouter.get("/:id", middleware.verifyToken, async (req, res) => {
@@ -213,10 +270,13 @@ diaryrouter.patch("/:id", middleware.verifyToken, async (req, res) => {
 });
 
 //Delete a diary
-diaryrouter.delete("/:id", middleware.verifyToken, async (req, res) => {
+diaryrouter.delete("/delete/:id", middleware.verifyToken, async (req, res) => {
   //I need a JOI schema to verify what's coming in the req.params.id
   const diary_id = req.params.id;
   try {
+    if (!diary_id) {
+      throw error;
+    }
     await Diary.deleteOne({ _id: diary_id });
     logger.info(`Diary ${diary_id} deleted by user {req.userId}`);
     return res.status(200).json({
@@ -234,7 +294,7 @@ diaryrouter.delete("/:id", middleware.verifyToken, async (req, res) => {
 //Delete all diaries
 diaryrouter.delete("/deleteall", middleware.verifyToken, async (req, res) => {
   try {
-    logger.info("All diaries  deleted by user {req.userId}");
+    logger.info(`All diaries  deleted by user ${req.userId}`);
     await Diary.deleteMany({});
     return res.status(200).json({
       status: "success",
@@ -242,37 +302,10 @@ diaryrouter.delete("/deleteall", middleware.verifyToken, async (req, res) => {
     });
   } catch (error) {
     return res.status(500).json({
+      status: "error",
       message: "Internal Server Error",
-      error: error.message,
     });
   }
 });
-
-// Filter Diary Entries by Date Range
-diaryrouter.get(
-  "/filter",
-  validate(dateSchema),
-  middleware.verifyToken,
-  async (req, res) => {
-    const { startDate, endDate } = req.query;
-    try {
-      const diaries = await Diary.find({
-        userId: req.userId,
-        date: { $gte: new Date(startDate), $lte: new Date(endDate) },
-      }).sort({ date: -1 });
-      return res.status(200).json({
-        status: "success",
-        message: "Diaries succesfully retrieved",
-        data: diaries,
-      });
-    } catch (err) {
-      return res.status(500).json({
-        status: "error",
-        message: err.message,
-        error: "Internal Server Error",
-      });
-    }
-  }
-);
 
 module.exports = { diaryrouter, fetchEmails };

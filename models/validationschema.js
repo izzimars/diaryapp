@@ -78,6 +78,17 @@ const dateSchema = Joi.object({
   endDate: Joi.date().min(Joi.ref("startDate")).required().messages({
     "date.min": "End date must be greater than or equal to start date",
   }),
+  limit: Joi.number().integer().min(1).default(12),
+  page: Joi.number().integer().min(1).default(1),
+});
+
+const getDiarySchema = Joi.object({
+  limit: Joi.number().integer().min(1).default(12),
+  page: Joi.number().integer().min(1).default(1),
+});
+
+const postSchema = Joi.object({
+  content: Joi.string().required(),
 });
 
 const timePattern = /^([0-1]?[0-9]):([0-5][0-9])\s(am|pm)$/;
@@ -133,4 +144,6 @@ module.exports = {
   setupPasswdSchema,
   changeemailSchema,
   changeemailVerifySchema,
+  getDiarySchema,
+  postSchema,
 };
