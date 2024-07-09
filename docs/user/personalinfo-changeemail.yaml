@@ -1,11 +1,13 @@
-# docs/users/signup.yaml
+# docs/users/changeemail.yaml
 paths:
-  /users/signup:
+  /users/personalinfo/changeemail:
     post:
-      summary: "Sign up a new user"
-      description: "Registers a new user and sends an OTP"
+      summary: "Change Email"
+      description: "Changes the email address of the authenticated user and sends a verification OTP"
       tags:
         - Users
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -13,21 +15,9 @@ paths:
             schema:
               type: object
               properties:
-                fullname:
-                  type: string
-                  example: Test User
-                username:
-                  type: string
-                  example: testuser
                 email:
                   type: string
-                  example: elusamisegun6@gmail.com
-                phonenumber:
-                  type: string
-                  example: 1234567890
-                password:
-                  type: string
-                  example: password
+                  example: "newemail@example.com"
       responses:
         "200":
           description: "Verification OTP sent"
@@ -41,15 +31,15 @@ paths:
                     example: PENDING
                   message:
                     type: string
-                    example: Verification OTP sent
+                    example: "Verification OTP sent"
                   data:
                     type: object
                     properties:
                       email:
                         type: string
-                        example: elusamisegun6@gmail.com
+                        example: "newemail@example.com"
         "400":
-          description: "Email already exist"
+          description: "Bad Request"
           content:
             application/json:
               schema:
@@ -60,9 +50,9 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Email already exist
+                    example: "Detailed error message"
         "500":
-          description: "Internal server error"
+          description: "Internal Server Error"
           content:
             application/json:
               schema:
@@ -73,7 +63,4 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Internal Server Error
-                  error:
-                    type: string
-                    example: Error message
+                    example: "Detailed error message"

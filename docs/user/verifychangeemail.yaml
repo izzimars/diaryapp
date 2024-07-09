@@ -1,0 +1,60 @@
+# docs/users/changeemailverify.yaml
+paths:
+  /users/personalinfo/changeemail/verify:
+    post:
+      summary: "Verify Changed Email"
+      description: "Verifies the OTP to change the email address of the authenticated user"
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                otp:
+                  type: string
+                  example: "123456"
+      responses:
+        "200":
+          description: "Email successfully verified"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: "User email verified successfully"
+        "400":
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: "Detailed error message"
+        "404":
+          description: "Not Found"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: "Restricted access to user or OTP has expired"
