@@ -4,6 +4,7 @@ const bodyParser = require("body-parser");
 const config = require("./utils/config");
 const logger = require("./utils/logger");
 const userRoutes = require("./controllers/user");
+const remindersroute = require("./controllers/reminders.js");
 const { diaryrouter, fetchEmails } = require("./controllers/diary");
 const cors = require("cors");
 const middleware = require("./utils/middleware");
@@ -27,6 +28,7 @@ fetchEmails();
 // Use routes
 app.use("/api/users", userRoutes);
 app.use("/api/diaries", diaryrouter);
+app.use("/api/reminders", remindersroute);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 //middleware to handle errors in utils module
