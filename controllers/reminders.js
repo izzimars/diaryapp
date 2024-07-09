@@ -27,26 +27,14 @@ const {
   scheduleAllReminders,
   deleteReminders,
   deleteReminder,
+  updateReminderTimes
 } = require("./reminderbot");
 
-const updateReminderTimes = async (reminderId, newTime) => {
-  try {
-    const reminders = await Reminder.findone({ reminderId }); // Fetch all reminders
 
-    reminders.forEach(async (reminder) => {
-      reminder.time = newTime; // Update the time field
-      await reminder.save(); // Save the updated reminder
-    });
-
-    console.log("All reminders have been updated.");
-  } catch (err) {
-    console.error("Error updating reminders:", err);
-  }
-};
 
 // getting all reminders
 remindersroute.get("/", async (req, res) => {
-  const userId = req.body;
+  const userId = req.body.userId;
   try {
     const reminders = await Reminder.find({ userId });
     return res.status(200).json({
@@ -69,6 +57,10 @@ remindersroute.post("/addnew", async (req, res) => {
   const { userId, time } = req.body;
   try {
     addReminder(userId, time);
+    return res.status(200).json({
+        status: "success",
+        message: "Reminder successfully added"
+      });
   } catch (err) {
     console.error("Error creating reminder", err);
     res.status(500).json({
@@ -83,7 +75,13 @@ remindersroute.post("/addnew", async (req, res) => {
 remindersroute.patch("/update", async (req, res) => {
   const { reminderId, newTime } = req.body;
   try {
-    updateReminderTimes(reminderId, newTime);
+      const reminders = updateReminderTimes(reminderId, newTime);
+      //const reminders = await Reminder.findOne({ reminderId });
+    return res.status(200).json({
+        status: "success",
+        message: "Reminder successfully updated",
+        data: reminders,
+      });
   } catch (err) {
     console.error("Error updating reminder", err);
     res.status(500).json({
@@ -99,6 +97,10 @@ remindersroute.delete("/delete/:id", async (req, res) => {
   const reminderId = req.params;
   try {
     deleteReminder(reminderId);
+    return res.status(200).json({
+        status: "success",
+        message: "Reminder successfully deleted"
+      });
   } catch (err) {
     console.error("Error deleting reminders", err);
     res.status(500).json({
@@ -114,6 +116,10 @@ remindersroute.delete("/deleteall", async (req, res) => {
   const userId = req.body;
   try {
     deleteReminders(userId);
+    return res.status(200).json({
+        status: "success",
+        message: "Reminders successfully deleted"
+      });
   } catch (err) {
     console.error("Error deleting reminders", err);
     res.status(500).json({
