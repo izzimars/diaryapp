@@ -54,24 +54,30 @@ const fetchEmails = async () => {
           (part) => part.which === "TEXT"
         ).body;
         if (rawEmailContentText.includes(boundary)) {
+          //for new mails from systems
           text = rawEmailContentText.split(boundary);
-          //console.log(typeof text);
-          //console.log(text);
-          //`Content-Type: text/plain; charset="UTF-8"`;
           text = text[1];
-          //console.log(text);
           text = text.replace(
             /Content-Type: text\/plain; charset="UTF-8"\r?\n\r?\n/,
             ""
           );
           text = text.slice(0, text.lastIndexOf("--"));
+          if (text.includes("@gmail.com>")) {
+            //for mail replied to instead of creating a new mail
+            text = String(text.split("@gmail.com>")[0]);
+            text = text.split("Content-Transfer-Encoding: quoted-printable")[1];
+            text = text.split("\n");
+            text.pop();
+            text = text.join("\n");
+          }
           text = text.trim();
         } else {
+          //for mail from phones
           text = rawEmailContentText;
           text = text.trim();
         }
         try {
-          if (subject.toLowerCase().includes("diary") && emailaddress) {
+          if (emailaddress) {
             const user = await User.findOne({ email: emailaddress });
             if (!(user && user.verified)) {
               logger.info(`A log was attempted by ${emailaddress}`);

@@ -64,7 +64,7 @@ const sendOTPVerificationEmail = async (email, res) => {
       from: config.EMAIL_USER,
       to: email,
       subject: "Verify Your Email",
-      html: `<p>Enter <b>${otp}</b> in the app to complete your verification.</p>. OTP expires in 1 hour</p>`,
+      html: `<p>Enter <b>${otp}</b> in the app to complete your verification.</p>. OTP expires in 6 minutes</p>`,
     };
 
     const salt = await bcrypt.genSalt(10);
@@ -75,7 +75,7 @@ const sendOTPVerificationEmail = async (email, res) => {
       userId: user._id,
       otp: hashedOTP,
       createdat: Date.now(),
-      expiredat: Date.now() + 3600000,
+      expiredat: Date.now() + 360000,
     });
     await newOTPverification.save();
 
@@ -198,7 +198,7 @@ userrouter.post("/login", validate(loginSchema), async (req, res) => {
       });
     }
     logger.info(`User ${user.username} has been successfully signed in.`);
-    const token = jwt.sign({ userId: user._id }, secret, { expiresIn: "1h" });
+    const token = jwt.sign({ userId: user._id }, secret, { expiresIn: "3h" });
     return res.status(200).json({
       status: "success",
       message: "user signed in successfully",
