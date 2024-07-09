@@ -1,11 +1,13 @@
-# docs/reminders/setup.yaml
+# docs/reminders/deleteAllReminders.yaml
 paths:
-  /users/setup:
-    post:
-      summary: "Set Up Reminders"
-      description: "Sets up multiple reminders for the user"
+  /reminders/deleteall:
+    delete:
+      summary: "Delete All Reminders"
+      description: "Deletes all reminders for the authenticated user"
       tags:
         - Reminders
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -13,14 +15,12 @@ paths:
             schema:
               type: object
               properties:
-                times:
-                  type: array
-                  items:
-                    type: string
-                  example: ["00:30 am", "5:40 pm", "8:15 pm"]
+                userId:
+                  type: string
+                  example: "60d21b4667d0d8992e610c85"
       responses:
         "200":
-          description: "Reminders setup result"
+          description: "Reminders successfully deleted"
           content:
             application/json:
               schema:
@@ -31,7 +31,7 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: "0 failures and 3 success"
+                    example: "Reminders successfully deleted"
         "400":
           description: "Bad Request"
           content:
@@ -44,7 +44,7 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Detailed error message
+                    example: "Invalid userId"
         "401":
           description: "Unauthorized"
           content:

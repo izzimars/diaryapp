@@ -1,0 +1,104 @@
+# docs/reminders/updateReminder.yaml
+paths:
+  /reminders/update:
+    patch:
+      summary: "Update Reminder"
+      description: "Updates the time of an existing reminder for the authenticated user"
+      tags:
+        - Reminders
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reminderId:
+                  type: string
+                  example: "60d21b4667d0d8992e610c85"
+                newTime:
+                  type: string
+                  format: time
+                  example: "10:00 am"
+      responses:
+        "200":
+          description: "Reminder successfully updated"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: "Reminder successfully updated"
+                  data:
+                    type: object
+                    properties:
+                      userId:
+                        type: string
+                        example: "60d21b4667d0d8992e610c85"
+                      time:
+                        type: string
+                        format: time
+                        example: "10"
+                      hour:
+                        type: string
+                        format: time
+                        example: "30"
+        "400":
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: "Invalid input data"
+        "401":
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: "Invalid or missing token"
+        "404":
+          description: "Not Found"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: "Reminder not found"
+        "500":
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: "Detailed error message"

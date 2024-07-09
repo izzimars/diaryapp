@@ -1,0 +1,73 @@
+# docs/users/setup.yaml
+paths:
+  /users/setup:
+    post:
+      summary: "Set Up Reminders"
+      description: "Sets up multiple reminders for the user"
+      tags:
+        - Reminders
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                times:
+                  type: array
+                  items:
+                    type: string
+                  example: ["00:30 am", "5:40 pm", "8:15 pm"]
+      responses:
+        "200":
+          description: "Reminders setup result"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: "0 failures and 3 success"
+        "400":
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Detailed error message
+        "401":
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: "Invalid or missing token"
+        "500":
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: "Detailed error message"

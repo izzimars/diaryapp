@@ -1,0 +1,77 @@
+# docs/reminders/addReminder.yaml
+paths:
+  /reminders/addnew:
+    post:
+      summary: "Add New Reminder"
+      description: "Adds a new reminder for the authenticated user"
+      tags:
+        - Reminders
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                  example: "60d21b4667d0d8992e610c85"
+                time:
+                  type: string
+                  format: time
+                  example: "2:00 pm"
+      responses:
+        "200":
+          description: "Reminder successfully added"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: "Reminder successfully added"
+        "400":
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: "Invalid input data"
+        "401":
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: "Invalid or missing token"
+        "500":
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: "Detailed error message"
