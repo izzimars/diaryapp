@@ -49,7 +49,7 @@ const fetchEmails = async () => {
       let boundary = rawEmailContentHead["content-type"][0].split(`"`);
       boundary = boundary[1];
       let text;
-      if (subject.includes("diary")) {
+      if (subject.includes("diary") || subject.includes("daily reminder")) {
         const rawEmailContentText = item.parts.find(
           (part) => part.which === "TEXT"
         ).body;
