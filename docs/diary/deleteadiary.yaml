@@ -1,0 +1,69 @@
+# docs/diaries/delete_diary.yaml
+paths:
+  /diaries/delete/{id}:
+    delete:
+      summary: "Delete a diary entry"
+      description: "Deletes a specific diary entry by its ID"
+      tags:
+        - Diaries
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: "ID of the diary entry to delete"
+          schema:
+            type: string
+            example: "60d0fe4f5311236168a109ca"
+      responses:
+        "200":
+          description: "Diary successfully deleted"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: "Diary successfully deleted"
+        "400":
+          description: "Invalid request or error occurred"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: "Detailed error message"
+        "404":
+          description: "Diary not found"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: "Diary not found"
+        "500":
+          description: "Internal server error"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: "Internal server error"

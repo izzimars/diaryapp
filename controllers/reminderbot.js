@@ -121,7 +121,7 @@ const addReminder = async (user, time) => {
 //Function to update Reminder
 const updateReminderTimes = async (reminderId, newTime) => {
   try {
-    const reminder = await Reminder.findOne({ reminderId }); 
+    const reminder = await Reminder.findOne({ reminderId });
     const job = schedule.scheduledJobs[reminder._id];
     if (job) {
       job.cancel();
@@ -138,14 +138,13 @@ const updateReminderTimes = async (reminderId, newTime) => {
     reminder.hour = hour;
     reminder.time = mins; // Update the time field
     await reminder.save(); // Save the updated reminder
-    await scheduleReminder(reminder);      
+    await scheduleReminder(reminder);
 
     logger.info("All reminders have been updated.");
   } catch (err) {
     console.error("Error updating reminders:", err);
   }
 };
-
 
 // Function to delete a reminder
 async function deleteReminders(userId) {
@@ -174,10 +173,15 @@ async function deleteReminder(reminderId) {
     }
     await Reminder.findByIdAndDelete(reminder._id);
     logger.info(`Deleted reminder with ID: ${reminder._id}`);
-
   } catch (err) {
     logger.error(`Error deleting reminders for user ${userId}: ${err.message}`);
   }
 }
 
-module.exports = { addReminder, scheduleAllReminders, deleteReminders, deleteReminder, updateReminderTimes };
+module.exports = {
+  addReminder,
+  scheduleAllReminders,
+  deleteReminders,
+  deleteReminder,
+  updateReminderTimes,
+};

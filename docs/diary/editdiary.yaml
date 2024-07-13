@@ -1,0 +1,91 @@
+# docs/diaries/edit_diary.yaml
+paths:
+  /diaries/{id}:
+    patch:
+      summary: "Edit a diary entry"
+      description: "Edit the content of a specific diary entry by its ID"
+      tags:
+        - Diaries
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: "ID of the diary entry to edit"
+          schema:
+            type: string
+            example: "60d0fe4f5311236168a109ca"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  example: "Updated diary content"
+      responses:
+        "200":
+          description: "Diary successfully edited"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: "Diary successfully edited"
+                  data:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        example: "60d0fe4f5311236168a109ca"
+                      userId:
+                        type: string
+                        example: "60d0fe4f5311236168a109cb"
+                      content:
+                        type: string
+                        example: "Updated diary content"
+        "400":
+          description: "Invalid request or error occurred"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: "Detailed error message"
+        "404":
+          description: "Diary not found"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: "Diary not found"
+        "500":
+          description: "Internal server error"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: "Internal server error"

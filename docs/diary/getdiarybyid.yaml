@@ -1,0 +1,72 @@
+# docs/diaries/get_single_diary.yaml
+paths:
+  /diaries/{id}:
+    get:
+      summary: "Get a single diary entry by its ID"
+      description: "Retrieve a single diary entry using its unique identifier"
+      tags:
+        - Diaries
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+            example: 60c72b2f9f1b2c6d88f1b2c6
+          required: true
+          description: "Unique identifier of the diary entry"
+      responses:
+        "200":
+          description: "Diary successfully retrieved"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Diary successfully retrieved
+                  data:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        example: 60c72b2f9f1b2c6d88f1b2c6
+                      userId:
+                        type: string
+                        example: 60c72b2f9f1b2c6d88f1b2c6
+                      content:
+                        type: string
+                        example: "Today was a great day!"
+                      date:
+                        type: string
+                        format: date-time
+                        example: "2021-06-13T12:00:00.000Z"
+        "400":
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Detailed error message
+        "500":
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Internal Server Error

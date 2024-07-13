@@ -1,0 +1,35 @@
+# docs/diaries/delete_all_diaries.yaml
+paths:
+  /diaries/deleteall:
+    delete:
+      summary: "Delete all diary entries"
+      description: "Deletes all diary entries for the authenticated user"
+      tags:
+        - Diaries
+      responses:
+        "200":
+          description: "All diary entries successfully deleted"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: "All diary entries deleted"
+        "500":
+          description: "Internal server error"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: "Internal Server Error"
