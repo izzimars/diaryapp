@@ -19,6 +19,12 @@ const verifyToken = (req, res, next) => {
         message: "Failed to authenticate token",
       });
     }
+  
+  // Check token expiration
+  const currentTime = Math.floor(Date.now() / 1000); // Current time in seconds
+  if (decoded.exp < currentTime) {
+    return res.status(401).json({ status: 'error', message: 'Token has expired.' });
+  }
     // If token is successfully verified, attach userId to request object
     req.userId = decoded.userId;
     next();
