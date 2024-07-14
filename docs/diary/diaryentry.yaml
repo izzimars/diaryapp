@@ -1,0 +1,65 @@
+# docs/diaries/addDiaryEntry.yaml
+paths:
+  /diaries/:
+    post:
+      summary: "Add Diary Entry"
+      description: "Adds a new diary entry for the authenticated user"
+      tags:
+        - Diaries
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  example: "Today I had a wonderful day at the office."
+      responses:
+        "201":
+          description: "Diary successfully saved"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: "Diary successfully saved"
+                  data:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        example: "60d21b4667d0d8992e610c85"
+                      userId:
+                        type: string
+                        example: "60d0fe4f5311236168a109ca"
+                      content:
+                        type: string
+                        example: "Today I had a wonderful day at the park."
+                      createdAt:
+                        type: string
+                        example: "2023-07-01T14:12:35.547Z"
+                      updatedAt:
+                        type: string
+                        example: "2023-07-01T14:12:35.547Z"
+        "500":
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: "Detailed error message"

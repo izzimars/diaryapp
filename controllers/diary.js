@@ -233,9 +233,9 @@ diaryrouter.get("/:id", middleware.verifyToken, async (req, res) => {
   try {
     const diary = await Diary.findById({ _id: diary_id });
     if (!diary) {
-      return res.status(200).json({
-        status: "success",
-        message: "Diary is not in database",
+      return res.status(400).json({
+        status: "error",
+        message: "Diary not found",
         data: "",
       });
     }
@@ -287,7 +287,7 @@ diaryrouter.delete("/delete/:id", middleware.verifyToken, async (req, res) => {
     logger.info(`Diary ${diary_id} deleted by user {req.userId}`);
     return res.status(200).json({
       status: "success",
-      message: "Diaries deleted edited",
+      message: "Diary deleted successfully",
     });
   } catch (err) {
     return res.status(400).json({

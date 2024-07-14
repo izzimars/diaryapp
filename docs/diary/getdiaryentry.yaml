@@ -1,0 +1,86 @@
+# docs/diaries/getAllDiaryEntries.yaml
+paths:
+  /diaries/:
+    get:
+      summary: "Get All Diary Entries"
+      description: "Retrieves all diary entries for the authenticated user with pagination"
+      tags:
+        - Diaries
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: startDate
+          schema:
+            type: string
+            format: date
+          required: false
+          description: "Start date for filtering diary entries"
+        - in: query
+          name: endDate
+          schema:
+            type: string
+            format: date
+          required: false
+          description: "End date for filtering diary entries"
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 12
+          required: false
+          description: "Limit the number of diary entries returned"
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          required: false
+          description: "Page number for pagination"
+      responses:
+        "200":
+          description: "Diaries successfully retrieved"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: "Diaries successfully retrieved"
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                          example: "60d21b4667d0d8992e610c85"
+                        userId:
+                          type: string
+                          example: "60d0fe4f5311236168a109ca"
+                        content:
+                          type: string
+                          example: "Today I had a wonderful day at the park."
+                        createdAt:
+                          type: string
+                          example: "2023-07-01T14:12:35.547Z"
+                        updatedAt:
+                          type: string
+                          example: "2023-07-01T14:12:35.547Z"
+        "500":
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: "Detailed error message"
