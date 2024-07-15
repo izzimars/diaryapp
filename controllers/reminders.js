@@ -17,8 +17,8 @@ const {
 } = require("./reminderbot");
 
 // getting all reminders
-remindersroute.get("/", async (req, res) => {
-  const userId = req.body.userId;
+remindersroute.get("/",middleware.verifyToken, async (req, res) => {
+  const userId = req.userId;
   try {
     const reminders = await Reminder.find({ userId });
     return res.status(200).json({
