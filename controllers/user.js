@@ -465,6 +465,11 @@ userrouter.post(
   }
 );
 
+// Protect routes with verifyToken middleware
+app.use('/protected', middleware.verifyToken, (req, res) => {
+  res.status(200).json({ status: 'success', message: 'You have access to this protected route.' });
+});
+
 userrouter.post(
   "/personalinfo/changeemail/verify",
   validate(changeemailVerifySchema),
