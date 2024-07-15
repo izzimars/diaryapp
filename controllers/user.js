@@ -7,7 +7,7 @@ const userrouter = express.Router();
 const config = require("../utils/config");
 const logger = require("../utils/logger");
 const middleware = require("../utils/middleware");
-const upload = require('../utils/cloudinary');
+const upload = require("../utils/cloudinary");
 const secret = config.SECRET;
 const {
   signupSchema,
@@ -35,22 +35,22 @@ userrouter.post("/signup", validate(signupSchema), async (req, res) => {
   const { fullname, username, email, phonenumber, password } = req.body;
   try {
     let user;
-    const userName = await User.findOne({ username:username });
-    if ( userName) {
+    const userName = await User.findOne({ username: username });
+    if (userName) {
       return res.status(400).json({
         status: "error",
         message: "Username already exist",
       });
     }
     user = await User.findOne({ email: email });
-    if (user ) {
+    if (user) {
       return res.status(400).json({
         status: "error",
         message: "Email already exist",
       });
     }
     const number = await User.findOne({ phonenumber: phonenumber });
-    if ( number ) {
+    if (number) {
       return res.status(400).json({
         status: "error",
         message: "Phonenumber already exist",
@@ -126,8 +126,8 @@ const sendOTPVerificationEmail = async (email, res) => {
 userrouter.post("/verifyOTP", validate(verifyOTPSchema), async (req, res) => {
   try {
     let { email, otp } = req.body;
-    const user = await User.findOne({ email:email });
-    if (!user ) {
+    const user = await User.findOne({ email: email });
+    if (!user) {
       return res.status(400).json({
         status: "error",
         message: "User email not registered",
@@ -228,7 +228,7 @@ userrouter.post("/login", validate(loginSchema), async (req, res) => {
         { token: token },
         { username: user.username },
         { email: user.email },
-        {setup: user.setup}
+        { setup: user.setup },
       ],
     });
   } catch (err) {
@@ -322,7 +322,7 @@ userrouter.post(
         });
       }
     }
-    const user = await User.findOne({_id:req.userId});
+    const user = await User.findOne({ _id: req.userId });
     user.setup = true;
     await user.save();
     return res.status(200).json({
@@ -345,7 +345,7 @@ userrouter.get("/personalinfo", middleware.verifyToken, async (req, res) => {
         { email: user.email },
         { phonenumber: user.phonenumber },
         { verified: user.verified },
-        { profilePicture: user.profilePicture}
+        { profilePicture: user.profilePicture },
       ],
     });
   } catch (err) {
@@ -356,34 +356,39 @@ userrouter.get("/personalinfo", middleware.verifyToken, async (req, res) => {
   }
 });
 
-userrouter.post('/uploadProfilePicture',middleware.verifyToken, upload.single('profilePicture'), async (req, res) => {
-  try {
-    const user = await User.findOne({ _id: req.userId }); 
-    if (!user) {
-      return res.status(404).json({
+userrouter.post(
+  "/uploadProfilePicture",
+  middleware.verifyToken,
+  upload.single("profilePicture"),
+  async (req, res) => {
+    try {
+      const user = await User.findOne({ _id: req.userId });
+      if (!user) {
+        return res.status(404).json({
+          status: "error",
+          message: "User not found",
+        });
+      }
+      console.log(user);
+      user.profilePicture = req.file.path; // Cloudinary file path
+      await user.save();
+      res.status(200).json({
+        status: "success",
+        message: "Profile picture successfully uploaded",
+        data: {
+          profilePicture: user.profilePicture,
+        },
+      });
+    } catch (err) {
+      console.error("Error uploading profile picture", err);
+      res.status(500).json({
         status: "error",
-        message: "User not found"
+        message: err.message,
+        error: "Internal Server Error",
       });
     }
-    console.log(user)
-    user.profilePicture = req.file.path; // Cloudinary file path
-    await user.save();
-    res.status(200).json({
-      status: "success",
-      message: "Profile picture successfully uploaded",
-      data: {
-        profilePicture: user.profilePicture
-      }
-    });
-  } catch (err) {
-    console.error("Error uploading profile picture", err);
-    res.status(500).json({
-      status: "error",
-      message: err.message,
-      error: "Internal Server Error"
-    });
   }
-});
+);
 
 userrouter.post(
   "/personalinfo",
@@ -466,8 +471,11 @@ userrouter.post(
 );
 
 // Protect routes with verifyToken middleware
-app.use('/protected', middleware.verifyToken, (req, res) => {
-  res.status(200).json({ status: 'success', message: 'You have access to this protected route.' });
+userrouter.post("/protected", middleware.verifyToken, (req, res) => {
+  res.status(200).json({
+    status: "success",
+    message: "You have access to this protected route.",
+  });
 });
 
 userrouter.post(

@@ -37,10 +37,43 @@ remindersroute.get("/", async (req, res) => {
 });
 
 //add new reminder
-remindersroute.post("/addnew",validate(timeSchema), async (req, res) => {
-  const { userId, time } = req.body;
+remindersroute.post("/addnew", validate(timeSchema), async (req, res) => {
+  let reminders = req.body.times;
   try {
-    addReminder(userId, time);
+    let timeArr = [];
+    let convDbArr = [];
+    let dbArr = await Reminder.find({ userId: req.userId });
+    for (const time of reminders) {
+      let hour;
+      const divTime = time.split(/[: ]/);
+      if (divTime[2] == "am") {
+        hour = divTime[0];
+      } else {
+        let temp_hour = Number(divTime[0]) + 12;
+        hour = temp_hour < 24 ? temp_hour : 0;
+      }
+      let arr = [hour, divTime[1]];
+      timeArr.push(arr);
+      console.log(timeArr);
+    }
+    for (let i = 0; i < dbArr.length; i++) {
+      let arr = [dbArr[i].hour, dbArr[i].time];
+      convDbArr.push(arr);
+    }
+    for (let i = 0; i < timeArr.length; i++) {
+      for (let j = 0; j < convDbArr.length; j++) {
+        console.log("I am here");
+        if (
+          timeArr[i].every((element, index) => {
+            element === convDbArr[j][index];
+          })
+        ) {
+          console.log("I am here");
+          reminders.splice(i, 1);
+        }
+      }
+    }
+    console.log(reminders);
     return res.status(200).json({
       status: "success",
       message: "Reminder successfully added",
@@ -56,25 +89,25 @@ remindersroute.post("/addnew",validate(timeSchema), async (req, res) => {
 });
 
 //update reminder
-remindersroute.patch("/update",validate(timeSchema), async (req, res) => {
-  const { reminderId, newTime } = req.body;
-  try {
-    const reminders = updateReminderTimes(reminderId, newTime);
-    //const reminders = await Reminder.findOne({ reminderId });
-    return res.status(200).json({
-      status: "success",
-      message: "Reminder successfully updated",
-      data: reminders,
-    });
-  } catch (err) {
-    console.error("Error updating reminder", err);
-    res.status(500).json({
-      status: "error",
-      message: err.message,
-      error: "Internal Server Error",
-    });
-  }
-});
+// remindersroute.patch("/update",validate(timeSchema), async (req, res) => {
+//   const { reminderId, newTime } = req.body;
+//   try {
+//     const reminders = updateReminderTimes(reminderId, newTime);
+//     //const reminders = await Reminder.findOne({ reminderId });
+//     return res.status(200).json({
+//       status: "success",
+//       message: "Reminder successfully updated",
+//       data: reminders,
+//     });
+//   } catch (err) {
+//     console.error("Error updating reminder", err);
+//     res.status(500).json({
+//       status: "error",
+//       message: err.message,
+//       error: "Internal Server Error",
+//     });
+//   }
+// });
 
 //delete a reminder
 remindersroute.delete("/delete/:id", async (req, res) => {
@@ -96,22 +129,22 @@ remindersroute.delete("/delete/:id", async (req, res) => {
 });
 
 //delete all
-remindersroute.delete("/deleteall", async (req, res) => {
-  const userId = req.body;
-  try {
-    deleteReminders(userId);
-    return res.status(200).json({
-      status: "success",
-      message: "Reminders successfully deleted",
-    });
-  } catch (err) {
-    console.error("Error deleting reminders", err);
-    res.status(500).json({
-      status: "error",
-      message: err.message,
-      error: "Internal Server Error",
-    });
-  }
-});
+// remindersroute.delete("/deleteall", async (req, res) => {
+//   const userId = req.body;
+//   try {
+//     deleteReminders(userId);
+//     return res.status(200).json({
+//       status: "success",
+//       message: "Reminders successfully deleted",
+//     });
+//   } catch (err) {
+//     console.error("Error deleting reminders", err);
+//     res.status(500).json({
+//       status: "error",
+//       message: err.message,
+//       error: "Internal Server Error",
+//     });
+//   }
+// });
 
 module.exports = remindersroute;
