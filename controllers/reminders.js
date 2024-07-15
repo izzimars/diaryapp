@@ -5,26 +5,12 @@ const config = require("../utils/config");
 const logger = require("../utils/logger");
 const middleware = require("../utils/middleware");
 const secret = config.SECRET;
-const {
-  signupSchema,
-  loginSchema,
-  resendOTPSchema,
-  forgotPasswordSchema,
-  dateSchema,
-  verifyOTPSchema,
-  timeSchema,
-  personalInfoSchema,
-  newPasswordSchema,
-  setupPasswdSchema,
-  changeemailSchema,
-  changeemailVerifySchema,
-} = require("../models/validationschema");
+const { timeSchema } = require("../models/validationschema");
 const validate = require("../utils/validate");
 const makeReminder = require("../models/reminderbot");
 
 const {
   addReminder,
-  scheduleAllReminders,
   deleteReminders,
   deleteReminder,
   updateReminderTimes,
@@ -51,7 +37,7 @@ remindersroute.get("/", async (req, res) => {
 });
 
 //add new reminder
-remindersroute.post("/addnew", async (req, res) => {
+remindersroute.post("/addnew",validate(timeSchema), async (req, res) => {
   const { userId, time } = req.body;
   try {
     addReminder(userId, time);
@@ -70,7 +56,7 @@ remindersroute.post("/addnew", async (req, res) => {
 });
 
 //update reminder
-remindersroute.patch("/update", async (req, res) => {
+remindersroute.patch("/update",validate(timeSchema), async (req, res) => {
   const { reminderId, newTime } = req.body;
   try {
     const reminders = updateReminderTimes(reminderId, newTime);

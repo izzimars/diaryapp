@@ -9,6 +9,11 @@ const UserSchema = new mongoose.Schema({
   phonenumber: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   verified: { type: Boolean, default: false },
+  setup: { type: Boolean, default: false },
+  profilePicture: {
+    type: String,
+    required: false
+  }
 });
 
 UserSchema.pre("save", async function (next) {
