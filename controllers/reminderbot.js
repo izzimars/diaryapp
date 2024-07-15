@@ -166,12 +166,12 @@ async function deleteReminders(userId) {
 
 async function deleteReminder(reminderId) {
   try {
-    const reminder = await Reminder.find({ reminderId });
+    const reminder = await Reminder.findOne({ _id: reminderId });
     const job = schedule.scheduledJobs[reminder._id];
     if (job) {
       job.cancel();
     }
-    await Reminder.findByIdAndDelete(reminder._id);
+    await Reminder.findByIdAndDelete({ _id: reminder._id });
     logger.info(`Deleted reminder with ID: ${reminder._id}`);
   } catch (err) {
     logger.error(`Error deleting reminders for user ${userId}: ${err.message}`);

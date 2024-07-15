@@ -17,7 +17,7 @@ const {
 } = require("./reminderbot");
 
 // getting all reminders
-remindersroute.get("/",middleware.verifyToken, async (req, res) => {
+remindersroute.get("/", middleware.verifyToken, async (req, res) => {
   const userId = req.userId;
   try {
     const reminders = await Reminder.find({ userId });
@@ -133,7 +133,8 @@ remindersroute.post(
 
 //delete a reminder
 remindersroute.delete("/delete/:id", async (req, res) => {
-  const reminderId = req.params;
+  const reminderId = req.params.id;
+  console.log(reminderId);
   try {
     deleteReminder(reminderId);
     return res.status(200).json({
