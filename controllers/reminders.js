@@ -37,56 +37,78 @@ remindersroute.get("/", async (req, res) => {
 });
 
 //add new reminder
-remindersroute.post("/addnew", validate(timeSchema), async (req, res) => {
-  let reminders = req.body.times;
-  try {
-    let timeArr = [];
-    let convDbArr = [];
-    let dbArr = await Reminder.find({ userId: req.userId });
-    for (const time of reminders) {
-      let hour;
-      const divTime = time.split(/[: ]/);
-      if (divTime[2] == "am") {
-        hour = divTime[0];
-      } else {
-        let temp_hour = Number(divTime[0]) + 12;
-        hour = temp_hour < 24 ? temp_hour : 0;
+remindersroute.post(
+  "/addnew",
+  middleware.verifyToken,
+  validate(timeSchema),
+  async (req, res) => {
+    let reminders = req.body.times;
+    let newreminders = [];
+    try {
+      let timeArr = [];
+      let convDbArr = [];
+      let dbArr = await Reminder.find({ userId: req.userId });
+      for (const time of reminders) {
+        let hour;
+        const divTime = time.split(/[: ]/);
+        if (divTime[2] == "am") {
+          hour = Number(divTime[0]);
+        } else {
+          let temp_hour = Number(divTime[0]) + 12;
+          hour = temp_hour < 24 ? temp_hour : 0;
+        }
+        let arr = [hour, Number(divTime[1])];
+        timeArr.push(arr);
       }
-      let arr = [hour, divTime[1]];
-      timeArr.push(arr);
-      console.log(timeArr);
-    }
-    for (let i = 0; i < dbArr.length; i++) {
-      let arr = [dbArr[i].hour, dbArr[i].time];
-      convDbArr.push(arr);
-    }
-    for (let i = 0; i < timeArr.length; i++) {
-      for (let j = 0; j < convDbArr.length; j++) {
-        console.log("I am here");
-        if (
-          timeArr[i].every((element, index) => {
-            element === convDbArr[j][index];
-          })
-        ) {
-          console.log("I am here");
-          reminders.splice(i, 1);
+      for (let i = 0; i < dbArr.length; i++) {
+        let arr = [dbArr[i].hour, dbArr[i].time];
+        convDbArr.push(arr);
+      }
+      for (let i = 0; i < timeArr.length; i++) {
+        let flag = false;
+        for (let j = 0; j < convDbArr.length; j++) {
+          if (
+            timeArr[i].every((element, index) => {
+              return element === convDbArr[j][index];
+            })
+          ) {
+            flag = true;
+            break;
+          }
+        }
+        if (!flag) {
+          newreminders.push(reminders[i]);
         }
       }
+      if (newreminders.length != 0) {
+        var suc = 0;
+        var fai = 0;
+        for (const time of newreminders) {
+          let rem = await addReminder(req.userId, time);
+          if (rem.status === "success") {
+            suc += 1;
+          } else if (rem.status === "error") {
+            fai += 1;
+          }
+        }
+        return res.status(200).json({
+          status: "success",
+          message: `${fai} failures and ${suc} success`,
+        });
+      } else {
+        return res.status(200).json({
+          status: "success",
+          message: `Reminders already exists`,
+        });
+      }
+    } catch (err) {
+      return res.status(500).json({
+        status: "error",
+        message: "error in creating reminders",
+      });
     }
-    console.log(reminders);
-    return res.status(200).json({
-      status: "success",
-      message: "Reminder successfully added",
-    });
-  } catch (err) {
-    console.error("Error creating reminder", err);
-    res.status(500).json({
-      status: "error",
-      message: err.message,
-      error: "Internal Server Error",
-    });
   }
-});
+);
 
 //update reminder
 // remindersroute.patch("/update",validate(timeSchema), async (req, res) => {
