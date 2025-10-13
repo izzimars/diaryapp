@@ -1,0 +1,28 @@
+import { configDotenv } from 'dotenv';
+configDotenv();
+
+const development = {
+  NODE_ENV: process.env.DIARY_NODE_ENV,
+  PORT: process.env.DIARY_PORT,
+  DATABASE_URL: process.env.DIARY_DEV_DATABASE_URL,
+  PAPERTRAIL_HOST: process.env.DIARY_DEV_PAPERTRAIL_HOST,
+  PAPERTRAIL_PORT: process.env.DIARY_DEV_PAPERTRAIL_PORT,
+  AUTH_SECRET: process.env.DIARY_JWT_SECRET,
+  CRYPTO_SECRET: process.env.DIARY_CRYPTO_SECRET,
+  CRYPTO_TIME_STEP: process.env.DIARY_CRYPTO_TIME_STEP,
+  CRYPTO_OTP_LENGTH: process.env.DIARY_CRYPTO_OTP_LENGTH,
+  CRYPTO_HASH_ALGO: process.env.DIARY_CRYPTO_HASH_ALGO,
+  SALT_ROUND: process.env.DIARY_SALT_ROUND,
+  REFRESH_SECRET: process.env.DIARY_JWT_SECRET,
+  RESET_SECRET: process.env.DIARY_JWT_SECRET,
+  CLOUDINARY_NAME: process.env.DIARY_CLOUDINARY_NAME,
+  CLOUDINARY_KEY: process.env.DIARY_CLOUDINARY_KEY,
+  CLOUDINARY_SECRET: process.env.DIARY_CLOUDINARY_SECRET,
+  EMAIL_HOST: 'smtp.gmail.com',
+  EMAIL_PORT: '465',
+  EMAIL_USER: process.env.DIARY_DEV_EMAIL_USER,
+  EMAIL_PASS: process.env.DIARY_DEV_EMAIL_PASS,
+  FRONTEND_URL: process.env.DIARY_FRONTEND_URL || 'http://localhost:3000',
+};
+
+export default development;

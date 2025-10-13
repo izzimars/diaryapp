@@ -1,0 +1,23 @@
+{
+  "dev": {
+    "ENV": "DIARY_DEV_DATABASE_URL",
+    "sql-file": true
+  },
+  "development": {
+    "ENV": "DIARY_DEV_DATABASE_URL", 
+    "sql-file": true
+  },
+  "staging": {
+    "ENV": "DIARY_STAGING_DATABASE_URL",
+    "sql-file": true
+  },
+  "test": {
+    "ENV": "DIARY_TEST_DATABASE_URL",
+    "sql-file": true
+  },
+  "production": {
+    "ENV": "DIARY_PRODUCTION_DATABASE_URL",
+    "sql-file": true
+  },
+  "sql-file": true
+}
